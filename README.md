@@ -13,6 +13,7 @@ This repository outlines the instructions and scripts needed to create the ARTIS
         - Push all model input data to AWS S3
         - Build docker image needed that the AWS Batch jobs will need to run ARTIS model
         - Push docker image to AWS ECR
+        - Submit jobs to ARTIS HPC
         - Pull all model outputs data
 
 ## Installation
