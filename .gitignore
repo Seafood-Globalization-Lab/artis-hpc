@@ -1,1 +1,5 @@
 notes.txt
+
+# Terraform state files
+.terraform.lock.hcl
+.terraform/

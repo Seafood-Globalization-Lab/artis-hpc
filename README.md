@@ -58,3 +58,16 @@ If this has been unsuccessful you might need to install xcode command line tools
 2. Run terminal command: `export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
 3. Run terminal command `aws configure set aws_access_key_id "[YOUR_AWS_ACCESS_KEY]"`
 4. Run terminal command `aws configure set aws_secret_access_key "[YOUR_AWS_SECRET_KEY]"`
+
+## Creating AWS infrastructure using Terraform
+1. Download and install terraform providers needed - run terminal command: `terraform init`
+2. Format terraform configuration - run terminal command: `terraform fmt`
+3. Validate terraform configuration - run terminal command: `terraform validate`
+4. Create AWS HPC infrastructure - run terminal command: `terraform apply`
+5. Accept these actions when prompted by terraform, type `yes` into terminal. ***Note: this may take a long time since terraform is requesting a variety of AWS resources to be created, and waits until all have been created before returning.***
+6. Review AWS infrastructure created via terraform scripts by running terminal command `terraform show`
+
+
+## Setting up AWS infrastructure with model resources
+Before running our model on AWS we need to send the necessary resources (model input data, docker image) required to run the model.
+
