@@ -67,6 +67,8 @@ If this has been unsuccessful you might need to install xcode command line tools
 5. Accept these actions when prompted by terraform, type `yes` into terminal. ***Note: this may take a long time since terraform is requesting a variety of AWS resources to be created, and waits until all have been created before returning.***
 6. Review AWS infrastructure created via terraform scripts by running terminal command `terraform show`
 
+**Note:** If terraform states that it created all resources however when you log into the AWS console to confirm cannot see them, they have most likely been created as part of another account. Run `terraform destroy` on the command line. Confirmed you have followed the AWS CLI set up instructions with the correct set of keys (AWS access key and AWS secret access key).
+
 
 ## Setting up AWS infrastructure with model resources
 Before running our model on AWS we need to send the necessary resources (model input data, docker image) required to run the model.
