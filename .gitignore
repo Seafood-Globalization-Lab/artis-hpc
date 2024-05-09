@@ -3,3 +3,8 @@ notes.txt
 # Terraform state files
 .terraform.lock.hcl
 .terraform/
+terraform.tfstate
+terraform.tfstate.backup
+
+# virtual environment
+venv/
