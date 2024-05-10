@@ -43,7 +43,7 @@ resource "aws_ecr_repository" "artis_hs_ecr" {
 
 # Create VPC
 resource "aws_vpc" "vpc" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.cidr0
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
@@ -102,7 +102,7 @@ resource "aws_flow_log" "flowlogs_vpc" {
 # Create VpcCidrBlock1
 resource "aws_vpc_ipv4_cidr_block_association" "vpc_cidrblock1" {
   vpc_id     = aws_vpc.vpc.id
-  cidr_block = "10.1.0.0/16"
+  cidr_block = var.cidr1
   depends_on = [
     aws_vpc.vpc
   ]
@@ -111,7 +111,7 @@ resource "aws_vpc_ipv4_cidr_block_association" "vpc_cidrblock1" {
 # Create VpcCidrBlock2
 resource "aws_vpc_ipv4_cidr_block_association" "vpc_cidrblock2" {
   vpc_id     = aws_vpc.vpc.id
-  cidr_block = "10.2.0.0/16"
+  cidr_block = var.cidr2
   depends_on = [
     aws_vpc.vpc
   ]
@@ -120,7 +120,7 @@ resource "aws_vpc_ipv4_cidr_block_association" "vpc_cidrblock2" {
 # Create VpcCidrBlock3
 resource "aws_vpc_ipv4_cidr_block_association" "vpc_cidrblock3" {
   vpc_id     = aws_vpc.vpc.id
-  cidr_block = "10.3.0.0/16"
+  cidr_block = var.cidr3
   depends_on = [
     aws_vpc.vpc
   ]
@@ -153,7 +153,7 @@ resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.vpc.id
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
-  cidr_block              = cidrsubnet("10.0.0.0/16", 8, 1)
+  cidr_block              = cidrsubnet(var.cidr0, 8, 1)
   depends_on = [
     aws_vpc.vpc
   ]
@@ -183,7 +183,7 @@ resource "aws_security_group" "vpc_security_group" {
 # Create private subnet for each availability zone
 resource "aws_subnet" "private_subnet1" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1.vpc_id
-  cidr_block        = cidrsubnet("10.1.0.0/16", 8, 1)
+  cidr_block        = cidrsubnet(var.cidr1, 8, 1)
   availability_zone = "us-east-1a"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1
@@ -192,7 +192,7 @@ resource "aws_subnet" "private_subnet1" {
 
 resource "aws_subnet" "private_subnet2" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1.vpc_id
-  cidr_block        = cidrsubnet("10.1.0.0/16", 8, 2)
+  cidr_block        = cidrsubnet(var.cidr1, 8, 2)
   availability_zone = "us-east-1b"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1
@@ -201,7 +201,7 @@ resource "aws_subnet" "private_subnet2" {
 
 resource "aws_subnet" "private_subnet3" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2.vpc_id
-  cidr_block        = cidrsubnet("10.2.0.0/16", 8, 1)
+  cidr_block        = cidrsubnet(var.cidr2, 8, 1)
   availability_zone = "us-east-1c"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2
@@ -210,7 +210,7 @@ resource "aws_subnet" "private_subnet3" {
 
 resource "aws_subnet" "private_subnet4" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2.vpc_id
-  cidr_block        = cidrsubnet("10.2.0.0/16", 8, 2)
+  cidr_block        = cidrsubnet(var.cidr2, 8, 2)
   availability_zone = "us-east-1d"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2
@@ -219,7 +219,7 @@ resource "aws_subnet" "private_subnet4" {
 
 resource "aws_subnet" "private_subnet5" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3.vpc_id
-  cidr_block        = cidrsubnet("10.3.0.0/16", 8, 1)
+  cidr_block        = cidrsubnet(var.cidr3, 8, 1)
   availability_zone = "us-east-1e"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3
@@ -228,7 +228,7 @@ resource "aws_subnet" "private_subnet5" {
 
 resource "aws_subnet" "private_subnet6" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3.vpc_id
-  cidr_block        = cidrsubnet("10.3.0.0/16", 8, 2)
+  cidr_block        = cidrsubnet(var.cidr3, 8, 2)
   availability_zone = "us-east-1f"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3
@@ -313,7 +313,7 @@ resource "aws_route_table_association" "private_subnet6_rt_assoc" {
 # Create an S3 endpoint
 resource "aws_vpc_endpoint" "s3_endpoint" {
   vpc_id          = aws_vpc.vpc.id
-  service_name    = "com.amazonaws.us-east-1.s3"
+  service_name    = var.s3_service_name
   route_table_ids = [aws_route_table.private_route_table.id]
   policy = jsonencode({
     Version = "2012-10-17"
@@ -329,7 +329,7 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 # Create a DynamoDB endpoint
 resource "aws_vpc_endpoint" "dynamodb_endpoint" {
   vpc_id          = aws_vpc.vpc.id
-  service_name    = "com.amazonaws.us-east-1.dynamodb"
+  service_name    = var.dynamodb_service_name
   route_table_ids = [aws_route_table.private_route_table.id]
   policy = jsonencode({
     Version = "2012-10-17"
@@ -372,37 +372,37 @@ resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
 
 # Create AWS Batch compute environment
 resource "aws_batch_compute_environment" "artis_compute_env" {
-    compute_environment_name = "artis-compute-env"
-    compute_resources {
-        max_vcpus = 256
-        security_group_ids = [aws_security_group.vpc_security_group]
-        subnets = [
-            aws_subnet.public_subnet.id,
-            aws_subnet.private_subnet1.id,
-            aws_subnet.private_subnet2.id,
-            aws_subnet.private_subnet3.id,
-            aws_subnet.private_subnet4.id,
-            aws_subnet.private_subnet5.id,
-            aws_subnet.private_subnet6.id
-        ]
-        type = "FARGATE"
-    }
-    service_role = aws_iam_role.aws_batch_service_role.arn
-    type = "MANAGED"
-    depends_on = [
-        aws_iam_role_policy_attachment.aws_batch_service_role
+  compute_environment_name = "artis-compute-env"
+  compute_resources {
+    max_vcpus          = 256
+    security_group_ids = [aws_security_group.vpc_security_group.id]
+    subnets = [
+      aws_subnet.public_subnet.id,
+      aws_subnet.private_subnet1.id,
+      aws_subnet.private_subnet2.id,
+      aws_subnet.private_subnet3.id,
+      aws_subnet.private_subnet4.id,
+      aws_subnet.private_subnet5.id,
+      aws_subnet.private_subnet6.id
     ]
+    type = "FARGATE"
+  }
+  service_role = aws_iam_role.aws_batch_service_role.arn
+  type         = "MANAGED"
+  depends_on = [
+    aws_iam_role_policy_attachment.aws_batch_service_role
+  ]
 }
 
 # Create a job queue and place it within the compute environment
 resource "aws_batch_job_queue" "job_queue" {
-    name = "artis-job-queue"
-    state = "ENABLED"
-    priority = 1000
-    compute_environment_order {
-        order = 1
-        compute_environment = aws_batch_compute_environment.artis_compute_env.arn
-    }
+  name     = "artis-job-queue"
+  state    = "ENABLED"
+  priority = 1000
+  compute_environment_order {
+    order               = 1
+    compute_environment = aws_batch_compute_environment.artis_compute_env.arn
+  }
 }
 
 
