@@ -1,3 +1,8 @@
+
+# Directory config files
+.DS_Store
+
+# Notes document
 notes.txt
 
 # Terraform state files
