@@ -11,6 +11,8 @@ notes.txt
 terraform.tfstate
 terraform.tfstate.backup
 
+# Not pushing the dockerfile in the root directory
+
 # virtual environment
 venv/
 

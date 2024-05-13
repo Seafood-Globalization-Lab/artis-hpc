@@ -45,7 +45,7 @@ RUN pip --no-cache-dir install --upgrade awscli
 RUN mkdir /usr/src/ARTIS
 WORKDIR /usr/src/ARTIS
 # WORKDIR /home/artis
-COPY . .
+COPY docker_image_files/ .
 
 RUN aws configure set aws_access_key_id "YOUR_ACCESS_KEY"
 RUN aws configure set aws_secret_access_key "YOUR_SECRET_ACCESS_KEY"
