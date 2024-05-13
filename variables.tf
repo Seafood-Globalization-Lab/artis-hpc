@@ -16,10 +16,28 @@ variable "ecr_repo_name" {
   default = "artis-hs-run"
 }
 
+# This is the docker image version we want to use
+variable "docker_version_tag" {
+  type    = string
+  default = "latest"
+}
+
+# Number of times you want a job to retry running if failed
+variable "job_retry_attempts" {
+  type    = string
+  default = 2
+}
+
 # Name of the docker image you created to run the ARTIS model
 variable "docker_image_name" {
   type    = string
   default = "artis-image"
+}
+
+# Name for job definition 
+variable "job_def_name" {
+  type    = string
+  default = "artis_job_definition"
 }
 
 # ONLY CHANGE THESE VARIABLES IF AN UPDATE REQUIRES YOU TO------------------------------

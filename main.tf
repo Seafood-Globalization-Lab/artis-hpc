@@ -21,7 +21,7 @@ provider "aws" {
 
 # Create S3 bucket where we will store model inputs and outputs
 resource "aws_s3_bucket" "artis-s3" {
-  bucket = "artis-s3-example-tf"
+  bucket = var.s3_bucket_name
 }
 
 
@@ -29,7 +29,7 @@ resource "aws_s3_bucket" "artis-s3" {
 # Create Elastic Container Registry (ECR) (repo to store docker images)
 # Note: this ECR repository will be created in your private registry
 resource "aws_ecr_repository" "artis_hs_ecr" {
-  name                 = "artis-hs-run-example-tf"
+  name                 = var.ecr_repo_name
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = false
@@ -405,5 +405,116 @@ resource "aws_batch_job_queue" "job_queue" {
   }
 }
 
+# Creating a Job definition---------------------------------------------------------
 
+# IAM policy document (Trusted entities)
+data "aws_iam_policy_document" "job_def_policy_doc" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type = "Service"
+      identifiers = [
+        "ecs-tasks.amazonaws.com",
+        "s3.amazonaws.com",
+        "ec2.amazonaws.com"
+      ]
+    }
+  }
+}
+
+# IAM role for AWS Batch ECS task execution
+resource "aws_iam_role" "ecs_task_exec_role" {
+  name               = "ecs_task_exec_role"
+  assume_role_policy = data.aws_iam_policy_document.job_def_policy_doc.json
+}
+
+# Attaching Amazon ECS task execution role policy to IAM role created for ECS task execution
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# AWS Batch Job Definition using Fargate platform
+resource "aws_batch_job_definition" "artis_job_def" {
+  name = "artis_job_definition"
+  type = "container"
+  platform_capabilities = [
+    "FARGATE"
+  ]
+
+  container_properties = jsonencode({
+    # Job Definition name
+    name = var.job_def_name
+    # Default command to Docker image is "echo test"
+    command = ["echo", "test"]
+
+    # Additional job environment setup options
+    /*
+    networkConfiguration  = {}
+    repositoryCredentials = {}
+    secrets               = []
+    environment           = []
+    linuxParameters       = {}
+    mountPoints           = []
+    logConfiguration = {
+      options       = {}
+      secretOptions = {}
+    }
+    */
+
+    # Set to try a job at least X amount of times (set as a variable in "variables.tf")
+    retry_strategy = {
+      attempts = var.job_retry_attempts
+    }
+
+    # Currently - No additional memory will be allocated besides the amount specified
+    # However can be customized to include additional memory if needed
+    /*
+    ephemeralStorage = {
+      sizeInGiB = null
+    }
+    */
+
+    # Docker image URL from your ECR repository
+    image = format(
+      "%s/%s:%s",
+      aws_ecr_repository.artis_hs_ecr.repository_url,
+      var.ecr_repo_name,
+      var.docker_version_tag
+    )
+
+    # Set to use the latest version of Fargate
+    platform_capabilities = [
+      "FARGATE"
+    ]
+    fargatePlatformConfiguration = {
+      platformVersion = "LATEST"
+    }
+
+    # Requirements that each server running a job should have
+    resourceRequirements = [
+      {
+        "type" : "VCPU",
+        "value" : "16.0"
+      },
+      {
+        "type" : "MEMORY",
+        "value" : "32768" # 32 GB
+      }
+    ]
+
+    # Set to use a Linux system running on a intel x86_64 chip
+    runtimePlatform = {
+      "cpuArchitecture" : "X86_64",
+      "operatingSystemFamily" : "LINUX"
+    }
+
+    # Set to root user to have all admin priviledges
+    user = "root"
+
+    # Execution role for jobs submitted using this task
+    executionRoleArn = aws_iam_role.ecs_task_exec_role.arn
+  })
+}
 
