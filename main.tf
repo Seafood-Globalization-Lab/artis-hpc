@@ -32,7 +32,7 @@ resource "aws_s3_bucket" "artis-s3" {
 resource "aws_ecr_repository" "artis_hs_ecr" {
   name                 = var.ecr_repo_name
   image_tag_mutability = "MUTABLE"
-  force_delete = true
+  force_delete         = true
   image_scanning_configuration {
     scan_on_push = false
   }

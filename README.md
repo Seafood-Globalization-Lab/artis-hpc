@@ -73,3 +73,21 @@ If this has been unsuccessful you might need to install xcode command line tools
 ## Setting up AWS infrastructure with model resources
 Before running our model on AWS we need to send the necessary resources (model input data, docker image) required to run the model.
 
+### Send model inputs to S3 bucket
+1. Place model inputs folder into the root project directory
+2. Send model inputs to S3 bucket, run terminal command: `python3 s3_upload.py`
+
+### Build and upload local docker image
+1. Copy and paste the correct Dockerfile into the root project directory (If your computer runs on an intel chip use docker_mac_x86/Dockerfile, if your computer runs on a apple silicon chip use docker_arm64/Dockerfile)
+2. Create and upload docker image, run terminal command `python3 docker_image_create_and_upload.py`
+
+
+## Running ARTIS model on AWS HPC
+1. Send 1 job per HS version to AWS HPC infrastructure, run terminal command `python3 submit_artis_jobs.py`
+2. Download "outputs" folder from AWS, run terminal command `python3 s3_download.py`
+
+# Clean up AWS and Docker environments
+1. Destroy all AWS resources and dependencies created, run terminal command `terraform destroy`
+2. Open Docker Desktop app and delete all containers created
+3. Open Docker Desktop app and delete all images created
+
