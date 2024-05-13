@@ -13,3 +13,6 @@ terraform.tfstate.backup
 
 # virtual environment
 venv/
+
+# Data
+model_inputs/
