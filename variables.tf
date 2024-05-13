@@ -13,7 +13,7 @@ variable "s3_bucket_name" {
 # This is the repository where you will keep your docker image
 variable "ecr_repo_name" {
   type    = string
-  default = "artis-hs-run"
+  default = "artis-image"
 }
 
 # Name of the docker image you created to run the ARTIS model

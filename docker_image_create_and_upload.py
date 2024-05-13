@@ -5,6 +5,8 @@ import base64
 import docker
 import boto3
 
+LOCAL_REPOSITORY = "artis-image"
+
 # Create Docker Image===============================================================
 # Note: the Docker Desktop app needs to be open before and while running this script
 docker_client = docker.from_env()
@@ -19,7 +21,7 @@ docker_fp = "."
 
 # Create a docker image
 print(f"Starting to build docker image based on dockerfile located at: {docker_fp}")
-docker_image = docker_client.images.build(path=docker_fp, tag = "artis-hs-run")
+docker_image = docker_client.images.build(path=docker_fp, tag = LOCAL_REPOSITORY)
 docker_image = docker_image[0]
 docker_images = docker_client.images.list()
 print("Current Docker Images:")
@@ -69,8 +71,6 @@ def read_aws_credentials(filename='.aws_credentials.json'):
 
     return credentials
 
-LOCAL_REPOSITORY = "artis-hs-run"
-
 # get AWS credentials
 aws_credentials = read_aws_credentials()
 access_key_id = aws_credentials['access_key_id']
@@ -119,4 +119,4 @@ print(f"Pushing local docker image artis-image to AWS ECR: {ecr_repo_name}")
 push_log = docker_client.images.push(ecr_repo_name, tag='latest')
 
 print(push_log)
-
+print("Successfully uploaded docker image to ECR")

@@ -22,6 +22,7 @@ provider "aws" {
 # Create S3 bucket where we will store model inputs and outputs
 resource "aws_s3_bucket" "artis-s3" {
   bucket = var.s3_bucket_name
+  force_destroy = true
 }
 
 

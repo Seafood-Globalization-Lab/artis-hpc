@@ -65,7 +65,7 @@ region = "us-east-1"
 # Create an S3 client to interact with AWS S3
 s3_client = create_s3_client(region=region)
 # Define bucket name
-s3_bucket_name = "artis-s3-example-tf"
+s3_bucket_name = "artis-s3-bucket"
 
 # Note: S3 bucket will have already been created through Terraform scripts
 
