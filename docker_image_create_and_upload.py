@@ -20,12 +20,16 @@ print(docker_images)
 docker_fp = "."
 
 # Create a docker image
+
 print(f"Starting to build docker image based on dockerfile located at: {docker_fp}")
 docker_image = docker_client.images.build(path=docker_fp, tag = LOCAL_REPOSITORY)
 docker_image = docker_image[0]
 docker_images = docker_client.images.list()
 print("Current Docker Images:")
 print(docker_images)
+
+# Uncomment if using image already built
+# docker_image = docker_images[0]
 
 
 # Upload docker image to AWS ECR=====================================================
