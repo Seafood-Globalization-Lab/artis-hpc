@@ -10,6 +10,8 @@ notes.txt
 .terraform/
 terraform.tfstate
 terraform.tfstate.backup
+main.tf
+variables.tf
 
 # Not pushing the dockerfile in the root directory
 Dockerfile
