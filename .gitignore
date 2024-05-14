@@ -20,3 +20,4 @@ venv/
 # Data
 model_inputs/
 *outputs/
+.Rproj.user
