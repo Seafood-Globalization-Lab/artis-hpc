@@ -47,6 +47,18 @@ variable "s3_service_name" {
   default = "com.amazonaws.us-east-1.s3"
 }
 
+# Service name for ECR API endpoint for VPC
+variable "ecr_api_service_name" {
+  type    = string
+  default = "com.amazonaws.us-east-1.ecr.api"
+}
+
+# Service name for ECR dkr endpoint for VPC
+variable "ecr_dkr_service_name" {
+  type    = string
+  default = "com.amazonaws.us-east-1.ecr.dkr"
+}
+
 # Service name for DynamoDB endpoint for VPC
 variable "dynamodb_service_name" {
   type    = string

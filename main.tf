@@ -136,7 +136,6 @@ resource "aws_internet_gateway" "internet_gateway" {
     Name = "internet_gateway"
   }
 }
-
 /*
 # Create Gateway to Internet
 resource "aws_internet_gateway_attachment" "internet_gateway_attachment" {
@@ -144,7 +143,6 @@ resource "aws_internet_gateway_attachment" "internet_gateway_attachment" {
   internet_gateway_id = aws_internet_gateway.internet_gateway.id
 }
 */
-
 # Create Elastic IP
 resource "aws_eip" "elastic_ip" {
   domain = "vpc"
@@ -155,7 +153,7 @@ resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.vpc.id
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
-  cidr_block              = cidrsubnet(var.cidr0, 8, 1)
+  cidr_block              = cidrsubnet(var.cidr0, 1, 0)
   depends_on = [
     aws_vpc.vpc
   ]
@@ -185,7 +183,7 @@ resource "aws_security_group" "vpc_security_group" {
 # Create private subnet for each availability zone
 resource "aws_subnet" "private_subnet1" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1.vpc_id
-  cidr_block        = cidrsubnet(var.cidr1, 8, 1)
+  cidr_block        = cidrsubnets(var.cidr1, 1, 1)[0]
   availability_zone = "us-east-1a"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1
@@ -194,7 +192,7 @@ resource "aws_subnet" "private_subnet1" {
 
 resource "aws_subnet" "private_subnet2" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1.vpc_id
-  cidr_block        = cidrsubnet(var.cidr1, 8, 2)
+  cidr_block        = cidrsubnets(var.cidr1, 1, 1)[1]
   availability_zone = "us-east-1b"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock1
@@ -203,7 +201,7 @@ resource "aws_subnet" "private_subnet2" {
 
 resource "aws_subnet" "private_subnet3" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2.vpc_id
-  cidr_block        = cidrsubnet(var.cidr2, 8, 1)
+  cidr_block        = cidrsubnets(var.cidr2, 1, 1)[0]
   availability_zone = "us-east-1c"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2
@@ -212,7 +210,7 @@ resource "aws_subnet" "private_subnet3" {
 
 resource "aws_subnet" "private_subnet4" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2.vpc_id
-  cidr_block        = cidrsubnet(var.cidr2, 8, 2)
+  cidr_block        = cidrsubnets(var.cidr2, 1, 1)[1]
   availability_zone = "us-east-1d"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock2
@@ -221,7 +219,7 @@ resource "aws_subnet" "private_subnet4" {
 
 resource "aws_subnet" "private_subnet5" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3.vpc_id
-  cidr_block        = cidrsubnet(var.cidr3, 8, 1)
+  cidr_block        = cidrsubnets(var.cidr3, 1, 1)[0]
   availability_zone = "us-east-1e"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3
@@ -230,7 +228,7 @@ resource "aws_subnet" "private_subnet5" {
 
 resource "aws_subnet" "private_subnet6" {
   vpc_id            = aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3.vpc_id
-  cidr_block        = cidrsubnet(var.cidr3, 8, 2)
+  cidr_block        = cidrsubnets(var.cidr3, 1, 1)[1]
   availability_zone = "us-east-1f"
   depends_on = [
     aws_vpc_ipv4_cidr_block_association.vpc_cidrblock3
@@ -249,7 +247,7 @@ resource "aws_route_table" "public_route_table" {
 resource "aws_route" "public_route" {
   route_table_id         = aws_route_table.public_route_table.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_nat_gateway.nat_gateway.id
+  gateway_id             = aws_internet_gateway.internet_gateway.id
 }
 
 # Create Private Route Table
@@ -316,7 +314,43 @@ resource "aws_route_table_association" "private_subnet6_rt_assoc" {
 resource "aws_vpc_endpoint" "s3_endpoint" {
   vpc_id          = aws_vpc.vpc.id
   service_name    = var.s3_service_name
-  route_table_ids = [aws_route_table.private_route_table.id]
+  route_table_ids = [
+    aws_route_table.private_route_table.id,
+    aws_route_table.public_route_table.id
+  ]
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = "*"
+      Resource  = "*"
+    }]
+  })
+}
+
+# Create an ECR endpoint
+resource "aws_vpc_endpoint" "ecr_api_endpoint" {
+  vpc_id            = aws_vpc.vpc.id
+  vpc_endpoint_type = "Interface"
+  service_name      = var.ecr_api_service_name
+  #route_table_ids = [aws_route_table.private_route_table.id]
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = "*"
+      Resource  = "*"
+    }]
+  })
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr_endpoint" {
+  vpc_id            = aws_vpc.vpc.id
+  vpc_endpoint_type = "Interface"
+  service_name      = var.ecr_dkr_service_name
+  #route_table_ids = [aws_route_table.private_route_table.id]
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -332,7 +366,10 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 resource "aws_vpc_endpoint" "dynamodb_endpoint" {
   vpc_id          = aws_vpc.vpc.id
   service_name    = var.dynamodb_service_name
-  route_table_ids = [aws_route_table.private_route_table.id]
+  route_table_ids = [
+    aws_route_table.private_route_table.id,
+    aws_route_table.public_route_table.id
+  ]
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -431,11 +468,53 @@ resource "aws_iam_role" "ecs_task_exec_role" {
   assume_role_policy = data.aws_iam_policy_document.job_def_policy_doc.json
 }
 
+# Add policy permissions to ECS task exec role------------------------------------------------
 # Attaching Amazon ECS task execution role policy to IAM role created for ECS task execution
-resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy" {
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy1" {
   role       = aws_iam_role.ecs_task_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy2" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy3" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonECS_FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy4" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy5" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy6" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy7" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy8" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilder"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_role_policy9" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+#----------------------------------------------------------------------------------------------
 
 # AWS Batch Job Definition using Fargate platform
 resource "aws_batch_job_definition" "artis_job_def" {
@@ -480,9 +559,8 @@ resource "aws_batch_job_definition" "artis_job_def" {
 
     # Docker image URL from your ECR repository
     image = format(
-      "%s/%s:%s",
+      "%s:%s",
       aws_ecr_repository.artis_hs_ecr.repository_url,
-      var.ecr_repo_name,
       var.docker_version_tag
     )
 
