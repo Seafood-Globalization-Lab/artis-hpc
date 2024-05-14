@@ -27,6 +27,7 @@ venv/
 # Data
 model_inputs/
 *outputs/
+docker_image_files/
 
 # R files
 .Rhistory
