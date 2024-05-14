@@ -29,5 +29,6 @@ model_inputs/
 *outputs/
 
 # R files
+.Rhistory
 .Rproj.user
 artis-hpc.Rproj

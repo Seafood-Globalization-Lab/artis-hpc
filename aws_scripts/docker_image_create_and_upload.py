@@ -40,7 +40,7 @@ print(docker_images)
 # Delete all contents in docker config file if it exists
 if os.path.exists("~/.docker/config.json"):
     f = open("~/.docker/config.json", "w")
-    json.dump({}, f)
+    f.write("{}") #json.dump({}, f)
     f.close()
 
 # Function that reads aws credentials
