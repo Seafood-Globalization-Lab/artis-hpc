@@ -27,4 +27,7 @@ venv/
 # Data
 model_inputs/
 *outputs/
+
+# R files
 .Rproj.user
+artis-hpc.Rproj
