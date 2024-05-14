@@ -41,9 +41,7 @@ docker_image = docker_images[0]
 # Delete all contents in docker config file if it exists
 docker_config_file = os.path.join(os.environ["HOME"], ".docker/config.json")
 if os.path.exists(docker_config_file):
-    f = open(docker_config_file, "w")
-    f.write("{}")
-    f.close()
+    os.remove(docker_config_file)
 
 # Function that reads aws credentials
 def read_aws_credentials(filename='.aws_credentials.json'):
