@@ -51,6 +51,15 @@ docker_f.write(dockerfile)
 docker_f.close()
 
 # Add AWS credentials to R environment for docker image
+# Create copy or original docker image files that will have custom names
+print("Creating custom set of files for use by docker image")
+docker_original_files_dir = "docker_image_files_original"
+docker_files_dir = "docker_image_files"
+if os.path.exists(docker_files_dir):
+    shutil.rmtree(docker_files_dir)
+
+shutil.copytree(docker_original_files_dir, docker_files_dir)
+
 print("Adding AWS credentials to R environment for docker image")
 renviron_f = open("docker_image_files/.Renviron", "w")
 renviron_f.writelines([
