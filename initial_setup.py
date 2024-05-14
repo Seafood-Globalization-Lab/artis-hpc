@@ -110,9 +110,9 @@ for r_file in r_files:
     f.close()
 
 # Adding S3 bucket names to upload and download scripts
-s3_script_dir = "s3_scripts"
+aws_script_dir = "aws_scripts"
 print("Creating S3 upload script")
-s3_upload_f = open(os.path.join(s3_script_dir, "s3_upload.py"), "r")
+s3_upload_f = open(os.path.join(aws_script_dir, "s3_upload.py"), "r")
 s3_upload = s3_upload_f.read()
 s3_upload_f.close()
 
@@ -122,7 +122,7 @@ s3_upload_f.write(s3_upload)
 s3_upload_f.close()
 
 print("Creating S3 download script")
-s3_download_f = open(os.path.join(s3_script_dir, "s3_download.py"), "r")
+s3_download_f = open(os.path.join(aws_script_dir, "s3_download.py"), "r")
 s3_download = s3_download_f.read()
 s3_download_f.close()
 
@@ -131,12 +131,34 @@ s3_download_f = open("s3_download.py", "w")
 s3_download_f.write(s3_download)
 s3_download_f.close()
 
+# Adding ECR repo name to docker creation and upload
+print("Creating Docker image creation and upload script")
+ecr_f = open(os.path.join(aws_script_dir, "docker_image_create_and_upload.py"), "r")
+ecr = ecr_f.read()
+ecr_f.close()
+
+ecr = re.sub("LOCAL_REPOSITORY = \"artis-image\"", f"LOCAL_REPOSITORY = \"{ecr_repo_name}\"", ecr)
+ecr_f = open("docker_image_create_and_upload.py", "w")
+ecr_f.write(ecr)
+ecr_f.close()
+
 # Run terraform commands to create AWS infrastructure
+print("Creating AWS infrastructure")
 os.system("terraform init")
 os.system("terraform fmt")
 os.system("terraform validate")
 os.system("terraform apply -auto-approve")
 
 # Run python script to upload all S3 files
-os.system("")
+print("Uploading model input files")
+os.system("python3 s3_upload.py")
 
+# Run python script to create and upload ARTIS docker image
+print("Creating docker image and uploading docker image to remote AWS ECR")
+os.system("python3 docker_image_create_upload.py")
+
+# Runing script to submit jobs to AWS ARTIS HPC
+print("Submitting Jobs to AWS ARTIS HPC")
+os.system("python3 submit_artis_jobs.py")
+
+print("Done!")

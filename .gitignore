@@ -13,9 +13,10 @@ terraform.tfstate.backup
 main.tf
 variables.tf
 
-# S3 scripts that were automatically created (custom to each run)
+# AWS scripts that were automatically created (custom to each run)
 s3_upload.py
 s3_download.py
+docker_image_create_and_upload.py
 
 # Not pushing the dockerfile in the root directory
 Dockerfile
