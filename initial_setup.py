@@ -109,4 +109,34 @@ for r_file in r_files:
     f.write(r_contents)
     f.close()
 
-print("Done")
+# Adding S3 bucket names to upload and download scripts
+s3_script_dir = "s3_scripts"
+print("Creating S3 upload script")
+s3_upload_f = open(os.path.join(s3_script_dir, "s3_upload.py"), "r")
+s3_upload = s3_upload_f.read()
+s3_upload_f.close()
+
+s3_upload = re.sub("s3_bucket_name = \"artis-s3-bucket\"", f"s3_bucket_name = \"{s3_bucket_name}\"", s3_upload)
+s3_upload_f = open("s3_upload.py", "w")
+s3_upload_f.write(s3_upload)
+s3_upload_f.close()
+
+print("Creating S3 download script")
+s3_download_f = open(os.path.join(s3_script_dir, "s3_download.py"), "r")
+s3_download = s3_download_f.read()
+s3_download_f.close()
+
+s3_download = re.sub("s3_bucket_name = \"artis-s3-bucket\"", f"s3_bucket_name = \"{s3_bucket_name}\"", s3_download)
+s3_download_f = open("s3_download.py", "w")
+s3_download_f.write(s3_download)
+s3_download_f.close()
+
+# Run terraform commands to create AWS infrastructure
+os.system("terraform init")
+os.system("terraform fmt")
+os.system("terraform validate")
+os.system("terraform apply -auto-approve")
+
+# Run python script to upload all S3 files
+os.system("")
+
