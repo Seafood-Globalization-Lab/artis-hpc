@@ -80,7 +80,7 @@ for data_file in data_files:
     data_fp = os.path.join(datadir, data_file)
     # Note: the files will follow the same file and directory structure that the local data directory has.
     response = upload_file(
-        s3_client=s3_client,
+        s3_client= s3_client,
         bucket_name = s3_bucket_name,
         file_name = data_fp
     )
