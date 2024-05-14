@@ -36,6 +36,7 @@ print("Adding AWS credentials to local environment")
 # Adding credentials to local environment
 os.environ["AWS_ACCESS_KEY"] = aws_access_key
 os.environ["AWS_SECRET_ACCESS_KEY"] = aws_secret_key
+os.environ["AWS_REGION"] = "us-east-1"
 
 # Add AWS credentials to Dockerfile for docker image
 print("Adding AWS credentials to Dockerfile")
@@ -151,23 +152,28 @@ ecr_f = open("docker_image_create_and_upload.py", "w")
 ecr_f.write(ecr)
 ecr_f.close()
 
-# Run terraform commands to create AWS infrastructure
-print("Creating AWS infrastructure")
-os.system("terraform init")
-os.system("terraform fmt")
-os.system("terraform validate")
-os.system("terraform apply -auto-approve")
 
-# Run python script to upload all S3 files
-print("Uploading model input files")
-os.system("python3 s3_upload.py")
+try:
+    # Run terraform commands to create AWS infrastructure
+    print("Creating AWS infrastructure")
+    os.system("terraform init")
+    os.system("terraform fmt")
+    os.system("terraform validate")
+    os.system("terraform apply -auto-approve")
 
-# Run python script to create and upload ARTIS docker image
-print("Creating docker image and uploading docker image to remote AWS ECR")
-os.system("python3 docker_image_create_upload.py")
+    # Run python script to upload all S3 files
+    print("Uploading model input files")
+    os.system("python3 s3_upload.py")
 
-# Runing script to submit jobs to AWS ARTIS HPC
-print("Submitting Jobs to AWS ARTIS HPC")
-os.system("python3 submit_artis_jobs.py")
+    # Run python script to create and upload ARTIS docker image
+    print("Creating docker image and uploading docker image to remote AWS ECR")
+    os.system("python3 docker_image_create_and_upload.py")
 
-print("Done!")
+    # Runing script to submit jobs to AWS ARTIS HPC
+    # print("Submitting Jobs to AWS ARTIS HPC")
+    # os.system("python3 submit_artis_jobs.py")
+
+    print("Done!")
+except:
+    print("Error occured...destroying all AWS resources")
+    os.system("terraform destroy -auto-approve")

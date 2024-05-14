@@ -20,16 +20,17 @@ print(docker_images)
 docker_fp = "."
 
 # Create a docker image
-
+"""
 print(f"Starting to build docker image based on dockerfile located at: {docker_fp}")
 docker_image = docker_client.images.build(path=docker_fp, tag = LOCAL_REPOSITORY)
 docker_image = docker_image[0]
 docker_images = docker_client.images.list()
 print("Current Docker Images:")
 print(docker_images)
+"""
 
 # Uncomment if using image already built
-# docker_image = docker_images[0]
+docker_image = docker_images[0]
 
 
 # Upload docker image to AWS ECR=====================================================
@@ -38,9 +39,10 @@ print(docker_images)
 # Note: AWS ECR repo has already been created by Terraform
 
 # Delete all contents in docker config file if it exists
-if os.path.exists("~/.docker/config.json"):
-    f = open("~/.docker/config.json", "w")
-    f.write("{}") #json.dump({}, f)
+docker_config_file = os.path.join(os.environ["HOME"], ".docker/config.json")
+if os.path.exists(docker_config_file):
+    f = open(docker_config_file, "w")
+    f.write("{}")
     f.close()
 
 # Function that reads aws credentials
