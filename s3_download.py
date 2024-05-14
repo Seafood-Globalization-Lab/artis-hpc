@@ -2,6 +2,7 @@
 # libraries
 import os
 import boto3
+from datetime import date
 
 # Functions=======================================================================
 
@@ -46,6 +47,11 @@ for page in page_iterator:
         else:
             print(f"Downloading file {item["Key"]}")
             s3_client.download_file(artis_bucket_name, item["Key"], item["Key"])
+
+# Rename outputs directory with today's date
+today = date.today()
+print(f"Adding date {today} to outputs directory")
+os.rename("outputs", f"{today}_outputs")
 
 print("Done")
 
