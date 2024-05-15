@@ -105,12 +105,10 @@ ecr_credentials = (
         .get_authorization_token()
         ['authorizationData'][0]
 )
-print(ecr_credentials)
+
 ecr_username, ecr_password = base64.b64decode(ecr_credentials['authorizationToken']).decode().split(':')
 ecr_url = ecr_credentials['proxyEndpoint'].replace("https://", "")
 print("Got AWS ECR login token")
-
-print(f"ecr_credentials:\n{ecr_url}\n{ecr_username}\n{ecr_password}")
 # get Docker to login/authenticate with ECR
 docker_client.login(
     username=ecr_username,
@@ -118,7 +116,7 @@ docker_client.login(
     registry=ecr_url,
     reauth=True
 )
-print(docker_client)
+
 print("Docker logged in and authenticated with ECR")
 
 # tag image for AWS ECR

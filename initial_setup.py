@@ -24,8 +24,6 @@ s3_bucket_name = args.s3_bucket
 ecr_repo_name = args.ecr_repo
 existing_image = args.docker_image
 
-print(args)
-
 # Copy appropriate dockerfile to project root directory based on chip infrastructure---------------
 print("Creating new Dockerfile")
 if args.chip == "x86":
