@@ -13,6 +13,7 @@ parser.add_argument("-aws_access_key", "--aws_access_key", help = "AWS Access Ke
 parser.add_argument("-aws_secret_key", "--aws_secret_access_key", help = "AWS Secret Access Key")
 parser.add_argument("-s3", "--s3_bucket", help = "AWS S3 Bucket name")
 parser.add_argument("-ecr", "--ecr_repo", help = "AWS ECR Repository name")
+parser.add_argument("-di", "--docker_image", help = "Existing Docker Image")
 
 args = parser.parse_args()
 
@@ -21,6 +22,7 @@ aws_access_key = args.aws_access_key
 aws_secret_key = args.aws_secret_access_key
 s3_bucket_name = args.s3_bucket
 ecr_repo_name = args.ecr_repo
+existing_image = args.docker_image
 
 print(args)
 
@@ -167,7 +169,10 @@ try:
 
     # Run python script to create and upload ARTIS docker image
     print("Creating docker image and uploading docker image to remote AWS ECR")
-    os.system("python3 docker_image_create_and_upload.py")
+    if existing_image == None:
+        os.system("python3 docker_image_create_and_upload.py")
+    else:
+        os.system(f"python3 docker_image_create_and_upload.py -di {existing_image}")
 
     # Runing script to submit jobs to AWS ARTIS HPC
     print("Submitting Jobs to AWS ARTIS HPC")

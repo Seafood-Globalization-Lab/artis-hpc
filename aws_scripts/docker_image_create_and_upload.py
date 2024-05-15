@@ -2,10 +2,20 @@
 import os
 import json
 import base64
+import argparse
 import docker
 import boto3
 
 LOCAL_REPOSITORY = "artis-image"
+
+# Command line argument parsing------------------------------------------------------
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-di", "--docker_image", help = "Existing Docker Image")
+
+args = parser.parse_args()
+
+existing_image = args.docker_image
 
 # Create Docker Image===============================================================
 # Note: the Docker Desktop app needs to be open before and while running this script
@@ -16,22 +26,21 @@ docker_images = docker_client.images.list()
 print("Current Docker Images:")
 print(docker_images)
 
-# dockerfile being used
-docker_fp = "."
+if not (existing_image == None):
+    # use existing docker image
+    docker_image = docker_client.images.get(existing_image)
+else:
+    # Create a docker image
 
-# Create a docker image
-"""
-print(f"Starting to build docker image based on dockerfile located at: {docker_fp}")
-docker_image = docker_client.images.build(path=docker_fp, tag = LOCAL_REPOSITORY)
-docker_image = docker_image[0]
-docker_images = docker_client.images.list()
-print("Current Docker Images:")
-print(docker_images)
-"""
+    # dockerfile being used
+    docker_fp = "."
 
-# Uncomment if using image already built
-docker_image = docker_images[0]
-
+    print(f"Starting to build docker image based on dockerfile located at: {docker_fp}")
+    docker_image = docker_client.images.build(path=docker_fp, tag = LOCAL_REPOSITORY)
+    docker_image = docker_image[0]
+    docker_images = docker_client.images.list()
+    print("Current Docker Images:")
+    print(docker_images)
 
 # Upload docker image to AWS ECR=====================================================
 # Based on: https://github.com/AlexIoannides/py-docker-aws-example-project/blob/master/deploy_to_aws.py
