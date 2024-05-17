@@ -100,6 +100,7 @@ FIXIT: Explain what each terminal command is doing
 1. Create a virtual environment, run terminal command:`python3 -m venv venv`
 2. Open virtual environment, run terminal command: `source venv/bin/activate`
 3. Install all required python modules, run terminal command: `pip3 install -r requirements.txt`
+4. Check that all python modules have been downloaded, run terminal command `pip freeze` and check that all modules in the requirements.txt file are included.
 
 If an error occurs please follow these instructions:
 1. Upgrade your version of pip by running terminal command: `pip install --upgrade pip`
