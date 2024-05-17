@@ -10,7 +10,7 @@ RUN apt-get install -y python3 python3-pip python3-setuptools python3-dev python
 
 RUN mkdir /usr/src/ARTIS
 WORKDIR /usr/src/ARTIS
-COPY docker_images_files/* .
+COPY docker_image_files/* .
 
 RUN apt-get install -y libblas-dev  libopenblas-dev libatlas-base-dev libsuitesparse-dev
 RUN apt-get install -y libdsdp-dev libfftw3-dev libglpk-dev libgsl-dev
