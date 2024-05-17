@@ -59,35 +59,26 @@ If this has been unsuccessful you might need to install xcode command line tools
 3. Run terminal command `aws configure set aws_access_key_id "[YOUR_AWS_ACCESS_KEY]"`
 4. Run terminal command `aws configure set aws_secret_access_key "[YOUR_AWS_SECRET_KEY]"`
 
-## Creating AWS infrastructure using Terraform
-1. Download and install terraform providers needed - run terminal command: `terraform init`
-2. Format terraform configuration - run terminal command: `terraform fmt`
-3. Validate terraform configuration - run terminal command: `terraform validate`
-4. Create AWS HPC infrastructure - run terminal command: `terraform apply`
-5. Accept these actions when prompted by terraform, type `yes` into terminal. ***Note: this may take a long time since terraform is requesting a variety of AWS resources to be created, and waits until all have been created before returning.***
-6. Review AWS infrastructure created via terraform scripts by running terminal command `terraform show`
+## Python Installation
+1. Create a virtual environment, run terminal command:`python3 -m venv venv`
+2. Open virtual environment, run terminal command: `source venv/bin/activate`
+3. Install all required python modules, run terminal command: `pip3 install -r requirements.txt`
+
+## Creating AWS Infrastructure with a setup file
+
+Note: the `initial_setup.py` script will create all necessary AWS infrastructure, upload all model inputs to an AWS S3 bucket, and create and upload a docker image based on the ARTIS codebase. It will also submit jobs to the ARTIS HPC.
+
+1. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: `python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]`
+    - Note: This will create the docker image from scratch. If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
+        - `python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name] -di [existing docker image name]`
 
 **Note:** If terraform states that it created all resources however when you log into the AWS console to confirm cannot see them, they have most likely been created as part of another account. Run `terraform destroy` on the command line. Confirmed you have followed the AWS CLI set up instructions with the correct set of keys (AWS access key and AWS secret access key).
 
 
-## Setting up AWS infrastructure with model resources
-Before running our model on AWS we need to send the necessary resources (model input data, docker image) required to run the model.
-
-### Send model inputs to S3 bucket
-1. Place model inputs folder into the root project directory
-2. Send model inputs to S3 bucket, run terminal command: `python3 s3_upload.py`
-
-### Build and upload local docker image
-1. Copy and paste the correct Dockerfile into the root project directory (If your computer runs on an intel chip use docker_mac_x86/Dockerfile, if your computer runs on a apple silicon chip use docker_arm64/Dockerfile)
-2. Create and upload docker image, run terminal command `python3 docker_image_create_and_upload.py`
-
-
-## Running ARTIS model on AWS HPC
-1. Send 1 job per HS version to AWS HPC infrastructure, run terminal command `python3 submit_artis_jobs.py`
-2. Download "outputs" folder from AWS, run terminal command `python3 s3_download.py`
-
-# Clean up AWS and Docker environments
-1. Destroy all AWS resources and dependencies created, run terminal command `terraform destroy`
-2. Open Docker Desktop app and delete all containers created
-3. Open Docker Desktop app and delete all images created
+# Download results, Clean up AWS and Docker environments
+1. Download "outputs" folder from AWS, run terminal command `python3 s3_download.py`
+2. Destroy all AWS resources and dependencies created, run terminal command `terraform destroy`
+3. Open Docker Desktop app and delete all containers created
+4. Open Docker Desktop app and delete all images created
+5. Close python environment, run terminal command: `deactivate`
 
