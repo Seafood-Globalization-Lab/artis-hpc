@@ -1,6 +1,11 @@
 
 # VARIABLES THAT CAN BE CUSTOMIZED-----------------------------------------------------
 
+# chip architecture
+variable "chip_arch" {
+  type = string
+  default = "X86_64"
+}
 
 # S3 bucket name
 # This should be the s3 bucket you want to push model inputs and outputs to

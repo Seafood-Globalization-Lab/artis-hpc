@@ -586,7 +586,7 @@ resource "aws_batch_job_definition" "artis_job_def" {
 
     # Set to use a Linux system running on a intel x86_64 chip
     runtimePlatform = {
-      "cpuArchitecture" : "X86_64",
+      "cpuArchitecture" : var.chip_arch,
       "operatingSystemFamily" : "LINUX"
     }
 

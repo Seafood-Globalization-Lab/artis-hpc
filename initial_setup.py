@@ -91,6 +91,9 @@ tf_var_f.close()
 variables_tf = re.sub("default = \"artis-s3-bucket\"", f"default = \"{s3_bucket_name}\"", variables_tf)
 variables_tf = re.sub("default = \"artis-image\"", f"default = \"{ecr_repo_name}\"", variables_tf)
 
+if chip_infrastructure == "arm64":
+    variables_tf = re.sub("default = \"artis-image\"", f"default = \"ARM64\"", variables_tf)
+
 tf_var_f = open("variables.tf", "w")
 tf_var_f.write(variables_tf)
 tf_var_f.close()
