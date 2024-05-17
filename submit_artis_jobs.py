@@ -1,7 +1,9 @@
 
+import os
 import boto3
 
-batch_client = boto3.client("batch")
+batch_client = boto3.client("batch",
+                            region_name=os.environ["AWS_REGION"])
 
 hs_versions = ["12"]
 
