@@ -91,8 +91,9 @@ These resources should
 FIXIT: Explain what each terminal command is doing
 1. Run terminal command: `export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
 2. Run terminal command: `export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
-3. Run terminal command `aws configure set aws_access_key_id "[YOUR_AWS_ACCESS_KEY]"`
-4. Run terminal command `aws configure set aws_secret_access_key "[YOUR_AWS_SECRET_KEY]"`
+3. Run terminal command: `export AWS_REGION=us-east-1`
+4. Run terminal command `aws configure set aws_access_key_id "[YOUR_AWS_ACCESS_KEY]"`
+5. Run terminal command `aws configure set aws_secret_access_key "[YOUR_AWS_SECRET_KEY]"`
 
 ## Python Installation
 **Note: Please make sure that your terminal is currently in your working directory that should end in `artis-hpc`, by running the terminal command `pwd`.**
