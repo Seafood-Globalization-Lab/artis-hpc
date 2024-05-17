@@ -8,6 +8,8 @@ This repository outlines the instructions and scripts needed to create the ARTIS
 2. Copy the most up-to-date ARTIS R package folder and place within `artis-hpc/docker_image_files_original/`
 3. Copy the most up-to-date ARTIS R package NAMESPACE file and place within `artis-hpc/docker_image_files_original/`
 4. Copy the most up-to-date ARTIS R package DESCRIPTION file and place within `artis-hpc/docker_image_files_original/`
+5. Copy arm64_venv_requirements.txt file from the root directory to the `artis-hpc/docker_image_files_original/`
+6. Rename the file `artis-hpc/docker_image_files_original/arm64_venv_requirements.txt` to `artis-hpc/docker_image_files_original/requirements.txt`
 
 ## Technologies used
 - Terraform
