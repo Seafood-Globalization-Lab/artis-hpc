@@ -139,7 +139,7 @@ s3_download_f = open(os.path.join(aws_script_dir, "s3_download.py"), "r")
 s3_download = s3_download_f.read()
 s3_download_f.close()
 
-s3_download = re.sub("s3_bucket_name = \"artis-s3-bucket\"", f"s3_bucket_name = \"{s3_bucket_name}\"", s3_download)
+s3_download = re.sub("artis_bucket_name = \"artis-s3-bucket\"", f"s3_bucket_name = \"{s3_bucket_name}\"", s3_download)
 s3_download_f = open("s3_download.py", "w")
 s3_download_f.write(s3_download)
 s3_download_f.close()
@@ -154,7 +154,6 @@ ecr = re.sub("LOCAL_REPOSITORY = \"artis-image\"", f"LOCAL_REPOSITORY = \"{ecr_r
 ecr_f = open("docker_image_create_and_upload.py", "w")
 ecr_f.write(ecr)
 ecr_f.close()
-
 
 try:
     # Run terraform commands to create AWS infrastructure
