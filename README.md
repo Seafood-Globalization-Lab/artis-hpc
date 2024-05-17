@@ -84,6 +84,8 @@ To create an AWS root user visit aws.amazon.com.
 To create an AWS IAM user:
 - FIXIT: include screenshots for creating an IAM user with the correct admin permissions.
 
+**Note: If you created ANY AWS RESOURCES for ARTIS manually please delete these before continuing.**
+
 ## AWS CLI Setup
 FIXIT: Explain what each terminal command is doing
 1. Run terminal command: `export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
