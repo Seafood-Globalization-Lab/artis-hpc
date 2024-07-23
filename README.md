@@ -82,7 +82,7 @@ If this has been unsuccessful you might need to install xcode command line tools
 - AWS root user has created an admin user group with "AdministratorAccess" permissions.
 - AWS root user has created IAM users
 - AWS root user has add IAM users to admin group
-- AWS IAM users have their AWS AWS_ACCESS_KEY and AWS_SECRET_ACCESS_KEY
+- AWS IAM users have their `AWS AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY`
 
 To create an AWS root user visit aws.amazon.com.
 
@@ -119,11 +119,11 @@ Note: the `initial_setup.py` script will create all necessary AWS infrastructure
 
 1. Open Docker Desktop
 2. Take note of any existing docker images and container relating to other projects, and delete all docker container relating to ARTIS, delete all docker images relating to ARTIS.
-3. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: `python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]`
-    - If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be "arm64", otherwise for intel chips it will be "x86"
-4. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: `python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]`
-    - Note: This will create the docker image from scratch. If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
-        - `python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name] -di [existing docker image name]:latest`
+3. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: ```python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]```
+    - *Note*: If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be "arm64", otherwise for intel chips it will be "x86"
+4. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: ```python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]```
+    - *Note*: This will create the docker image from scratch. If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
+        - ```python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name] -di [existing docker image name]:latest```
         
 Example:
   - If you are creating the docker image from scratch **(If you change any R code for ARTIS you will have to recreate a docker image)**:
