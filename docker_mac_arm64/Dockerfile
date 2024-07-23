@@ -28,4 +28,4 @@ RUN ./aws/install
 RUN aws configure set aws_access_key_id "YOUR_ACCESS_KEY"
 RUN aws configure set aws_secret_access_key "YOUR_SECRET_ACCESS_KEY"
 USER root
-RUN R -e "source('pipeline_setup.R')"
+RUN R -e "source('docker_image_r_pkg_installs.R')"

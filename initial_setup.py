@@ -52,7 +52,7 @@ docker_f.write(dockerfile)
 docker_f.close()
 
 # Add AWS credentials to R environment for docker image
-# Create copy or original docker image files that will have custom names
+# Create copy of original docker image files that will have custom names
 print("Creating custom set of files for use by docker image")
 docker_original_files_dir = "docker_image_files_original"
 docker_files_dir = "docker_image_files"
@@ -92,7 +92,7 @@ variables_tf = re.sub("default = \"artis-s3-bucket\"", f"default = \"{s3_bucket_
 variables_tf = re.sub("default = \"artis-image\"", f"default = \"{ecr_repo_name}\"", variables_tf)
 
 if chip_infrastructure == "arm64":
-    variables_tf = re.sub("default = \"artis-image\"", f"default = \"ARM64\"", variables_tf)
+    variables_tf = re.sub("default = \"X86_64\"", f"default = \"ARM64\"", variables_tf)
 
 tf_var_f = open("variables.tf", "w")
 tf_var_f.write(variables_tf)
