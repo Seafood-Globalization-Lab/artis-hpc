@@ -26,7 +26,6 @@ resource "aws_s3_bucket" "artis-s3" {
 }
 
 
-
 # Create Elastic Container Registry (ECR) (repo to store docker images)
 # Note: this ECR repository will be created in your private registry
 resource "aws_ecr_repository" "artis_hs_ecr" {
@@ -580,7 +579,7 @@ resource "aws_batch_job_definition" "artis_job_def" {
       },
       {
         "type" : "MEMORY",
-        "value" : "32768" # 32 GB
+        "value" : "122880" # 120 GB #"65536" # 64 GB
       }
     ]
 
@@ -595,6 +594,9 @@ resource "aws_batch_job_definition" "artis_job_def" {
 
     # Execution role for jobs submitted using this task
     executionRoleArn = aws_iam_role.ecs_task_exec_role.arn
+
+    # Job role for jobs submitted using this task allowing all S3 uploads
+    jobRoleArn = aws_iam_role.ecs_task_exec_role.arn
   })
 }
 
