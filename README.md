@@ -97,6 +97,7 @@ These resources should
 
 ## AWS CLI Setup
 **FIXIT**: Explain what each terminal command is doing
+
 1. Run terminal command: `export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
 2. Run terminal command: `export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
 3. Run terminal command: `export AWS_REGION=us-east-1`
