@@ -119,17 +119,38 @@ Note: the `initial_setup.py` script will create all necessary AWS infrastructure
 
 1. Open Docker Desktop
 2. Take note of any existing docker images and container relating to other projects, and delete all docker container relating to ARTIS, delete all docker images relating to ARTIS.
-3. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: ```python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]```
+3. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command:
+
+```
+python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]
+```
+
     - *Note*: If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be "arm64", otherwise for intel chips it will be "x86"
-4. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command: ```python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]```
+    
+5. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command:
+
+```default
+python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]
+```
+
     - *Note*: This will create the docker image from scratch. If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
-        - ```python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name] -di [existing docker image name]:latest```
-        
+
+```default
+python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name] -di [existing docker image name]:latest
+```
+
 Example:
   - If you are creating the docker image from scratch **(If you change any R code for ARTIS you will have to recreate a docker image)**:
-    - `python3 initial_setup.py -chip arm64 -aws_access_key abc1234 -aws_secret_key secretabc1234 -s3 myname-artis-s3 -ecr myname-artis-image`
+    
+```
+python3 initial_setup.py -chip arm64 -aws_access_key abc1234 -aws_secret_key secretabc1234 -s3 myname-artis-s3 -ecr myname-artis-image
+```
+
   - If you have an existing docker image (for example only need to re-upload a new set of model inputs):
-    - `python3 initial_setup.py -chip arm64 -aws_access_key abc1234 -aws_secret_key secretabc1234 -s3 myname-artis-s3 -ecr myname-artis-image -di myname-artis-image:latest`
+
+```
+python3 initial_setup.py -chip arm64 -aws_access_key abc1234 -aws_secret_key secretabc1234 -s3 myname-artis-s3 -ecr myname-artis-image -di myname-artis-image:latest
+```
 
 **Note:** If terraform states that it created all resources however when you log into the AWS console to confirm cannot see them, they have most likely been created as part of another account. Run `terraform destroy -auto-approve`on the command line. Confirmed you have followed the AWS CLI set up instructions with the correct set of keys (AWS access key and AWS secret access key).
 
