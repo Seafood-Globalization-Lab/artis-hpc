@@ -1,4 +1,6 @@
 # R version of s3 bucket
+# Note: the python version is faster, 
+# but this provides an option if the python version is not working
 
 # Load packages
 library(tidyverse)
