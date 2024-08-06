@@ -106,28 +106,12 @@ To create an AWS IAM user: - **FIXIT**: include screenshots for creating an IAM 
 
 1.  Run terminal command: `export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
     -   sets terminal environmental variable. Replace `[YOUR_AWS_ACCESS_KEY]` with your value
-
-```{=html}
-<!-- -->
-```
 2.  Run terminal command: `export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
     -   sets terminal environmental variable. Replace `[AWS_SECRET_ACCESS_KEY]` with your value
-
-```{=html}
-<!-- -->
-```
 3.  Run terminal command: `export AWS_REGION=us-east-1`
     -   sets terminal environmental variable
-
-```{=html}
-<!-- -->
-```
 4.  Run terminal command `aws configure set aws_access_key_id $AWS_ACCESS_KEY`
     -   writes value to AWS credentials file (`~/.aws/credentials`)
-
-```{=html}
-<!-- -->
-```
 5.  Run terminal command `aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY`
     -   writes value to AWS credentials file (`~/.aws/credentials`)
 6.  Run terminal command `aws configure set region $AWS_REGION`
@@ -170,10 +154,9 @@ python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR 
 
 -   If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be `arm64`, otherwise for intel chips it will be `x86`
 
-```{=html}
 <!-- -->
-```
--    If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
+
+-   If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
 
 ``` default
 python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name] -di [existing docker image name]:latest
