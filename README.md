@@ -96,13 +96,25 @@ To create an AWS IAM user:
 These resources should 
 
 ## AWS CLI Setup
-**FIXIT**: Explain what each terminal command is doing
 
 1. Run terminal command: `export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
+  - sets terminal environmental variable. Replace `[YOUR_AWS_ACCESS_KEY]` with your value
 2. Run terminal command: `export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
+  - sets terminal environmental variable. Replace `[AWS_SECRET_ACCESS_KEY]` with your value
 3. Run terminal command: `export AWS_REGION=us-east-1`
+  - sets terminal environmental variable
+  
 4. Run terminal command `aws configure set aws_access_key_id "[YOUR_AWS_ACCESS_KEY]"`
+  - writes value to aws credentials file (`~/.aws/credentials`) `aws configure set aws_access_key_id $AWS_ACCESS_KEY`
 5. Run terminal command `aws configure set aws_secret_access_key "[YOUR_AWS_SECRET_KEY]"`
+  - writes value to aws credentials file (`~/.aws/credentials`) `aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY`
+6. `aws configure set region $AWS_REGION`
+
+## Clear Exsisting AWS Resources
+
+[Log onto AWS](https://us-east-2.signin.aws.amazon.com/oauth?client_id=arn%3Aaws%3Asignin%3A%3A%3Aconsole%2Fcanvas&code_challenge=8nUzqNmFpMsGqg4WwTqUKFyBdVu_t_hDZMOyRX_xuoY&code_challenge_method=SHA-256&response_type=code&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3FhashArgs%3D%2523%26isauthcode%3Dtrue%26nc2%3Dh_ct%26oauthStart%3D1722978779160%26src%3Dheader-signin%26state%3DhashArgsFromTB_us-east-2_2ce942407ff08169) to check if there are any model outputs that need to be retained. Run script to clear existing AWS resources: S3 buckets, ClourdWatch Log Groups, EC2 Instances, and RDS Instances. `./delete_aws_resources.sh`
+
+
 
 ## Python Installation
 **Note**: Please make sure that your terminal is currently in your working directory that should end in `artis-hpc`, by running the terminal command `pwd`.
@@ -110,7 +122,7 @@ These resources should
 1. Create a virtual environment, run terminal command:`python3 -m venv venv`
 2. Open virtual environment, run terminal command: `source venv/bin/activate`
 3. Install all required python modules, run terminal command: `pip3 install -r requirements.txt`
-4. Check that all python modules have been downloaded, run terminal command `pip freeze` and check that all modules in the requirements.txt file are included.
+4. Check that all python modules have been downloaded, run terminal command `pip3 list` and check that all modules in the requirements.txt file are included.
 
 If an error occurs please follow these instructions:
 
@@ -130,13 +142,15 @@ If an error occurs please follow these instructions:
 python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]
 ```
 
-  - **Note**: If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be "arm64", otherwise for intel chips it will be "x86"
-    
-5. Create AWS infrastructure, upload model inputs and ARTIS docker image, run terminal command:
+  - `ecr [Docker image Repository name]` replace `[...]` with name of an existing repository or a new repository. 
 
+Example:
 ```default
-python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 [S3 bucket name of your choice]  -ecr [Docker image repository name]
+python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret_key $AWS_SECRET_ACCESS_KEY -s3 artis-s3-marks -ecr artis-image-sau-2024-08-06
 ```
+
+
+  - **Note**: If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be "arm64", otherwise for intel chips it will be "x86"
 
   - **Note**: This will create the docker image from scratch. If you have an existing docker image you would like to use include the `-di [existing docker image name]` with the command.
 
