@@ -14,3 +14,4 @@ install.packages('countrycode', dependencies = TRUE) # ok
 install.packages('aws.s3', dependencies = TRUE) # ok
 setwd('/usr/src/ARTIS')
 
+

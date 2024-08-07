@@ -25,9 +25,10 @@ Dockerfile
 venv/
 
 # Data
-model_inputs/
+data_s3_upload/
 *outputs/
 docker_image_files/
+
 
 # R files
 .Rhistory
