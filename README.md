@@ -1,9 +1,11 @@
 # ARTIS HPC
 
-This repository outlines the instructions to create the ARTIS High Performance Computer (HPC) on Amazon Web Services (AWS) and run the ARTIS model. There are two scenarios for using this repository:
+This repository contains the instructions to create the ARTIS High Performance Computer (HPC) on Amazon Web Services (AWS) and run the ARTIS model. There are two scenarios for using this repository:
 
-A.  Setting up a new ARTIS HPC on AWS
-B.  Running an Existing ARTIS HPC Setup
+1)  Setting up a new ARTIS HPC on AWS
+2) Running an Existing ARTIS HPC Setup
+
+*All commands will be run in the terminal/command line and indicated with a "$" before the command or contained within a code block*
 
 ## Assumptions:
 
@@ -15,7 +17,7 @@ B.  Running an Existing ARTIS HPC Setup
 
 To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#create-aws-iam-user)
 
-**Note**: If have you created **ANY** AWS RESOURCES for ARTIS manually, not including ROOT and IAM users, please delete these before continuing.
+**Note**: If have you created *ANY* AWS RESOURCES for ARTIS manually, not including ROOT and IAM users, please delete these before continuing.
 
 ## Table of Contents
 
@@ -31,7 +33,7 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
 -   [Python Installation](#python-installation)
 -   [Setting Up a New ARTIS HPC on AWS](#setting-up-a-new-artis-hpc-on-aws)
 -   [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
--   [Combine All ARTIS Model Outputs into Database Ready CSVs](#combining-all-artis-model-outputs-into-database-ready-csvs)
+-   [Combine All ARTIS Model Outputs into Database Ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)
 -   [Download Results, Clean Up AWS and Docker Environments](#download-results-clean-up-aws-and-docker-environments)
 -   [Create AWS IAM user](#create-aws-iam-user)
 
@@ -53,59 +55,59 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
 
 ## Update ARTIS model scripts and model inputs 
 
-1.  At project root directory run terminal command `mkdir data_s3_upload`
-2.  within `./data_s3_uplaod` run terminal command `mkdir ARTIS_model_code`
-3.  Copy the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
-4.  Copy the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-5.  Copy the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-6.  Copy the most up-to-date ARTIS R package `DESCRIPTION` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-7.  Copy the most up-to-date .Renviron file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-8. Copy the most up-to-date double number ARTIS `.R` scripts (i.e. `02-artis-pipeline.R`) to `artis-hpc/data_s3_upload/ARTIS_model_code/` (AM - check that this is correct)
+1.  At project root directory **run** $`mkdir data_s3_upload`
+2.  Within `artis-hpc/data_s3_uplaod` **run** $`mkdir ARTIS_model_code`
+3.  **Copy** the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
+4.  **Copy** the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+5.  **Copy** the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+6.  **Copy** the most up-to-date ARTIS R package `DESCRIPTION` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+7.  **Copy** the most up-to-date .Renviron file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+8. **Copy** the most up-to-date double number ARTIS `.R` scripts (i.e. `02-artis-pipeline.R`) to `artis-hpc/data_s3_upload/ARTIS_model_code/` (AM - check that this is correct)
 
 *If running on a new Apple chip arm64*:
 
-9.  Copy arm64_venv_requirements.txt file from the root directory to the `artis-hpc/docker_image_files_original/`
-10.  Rename the file `artis-hpc/docker_image_files_original/arm64_venv_requirements.txt` to `artis-hpc/docker_image_files_original/requirements.txt`
+9.  **Copy** arm64_venv_requirements.txt file from the root directory to the `artis-hpc/docker_image_files_original/`
+10.  **Rename** the file `artis-hpc/docker_image_files_original/arm64_venv_requirements.txt` to `artis-hpc/docker_image_files_original/requirements.txt`
 
-## Installations {#installations}
+## Installations
 
--   [Homebrew](#homebrew-instalation)
--   [AWS CLI](#aws-cli-instalation)
+-   [Homebrew](#homebrew-installation)
+-   [AWS CLI](#aws-cli-installation)
 -   [Terraform CLI](#terraform-cli-installation)
 -   Python
     -   Python packages
         -   docker
         -   boto3
 
-### Homebrew Instalation
+### Homebrew Installation
 
 **Note**: If you already have Homebrew installed please still confirm by following step 3 below. Both instructions should run without an error message.
 
-1.  Install homebrew by running the terminal command
+1.  Install homebrew - **run**
 
 ``` sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-2.  Close existing terminal window where installation command was run and open a new terminal window
-3.  Confirm homebrew has been installed: 
-    - Run terminal command `brew --version`. No error message should appear.
+2.  **Close** existing terminal window where installation command was run and **open** a new terminal window
+3.  Confirm homebrew has been installed -
+    - **Run** $`brew --version`. No error message should appear.
 
 *If after homebrew installation you get a message stating* `brew command not found`:
 
-4.  Edit zsh config file, run terminal command `vim ~/.zshrc`
+4.  Edit zsh config file, **run** $`vim ~/.zshrc`
 
-5.  Type `i` to enter edit mode
-6.  Copy paste this line into the file you opened:
+5.  **Type** `i` to enter edit mode
+6.  **Copy & paste** this line into the file you opened:
 
 ``` sh
 export PATH=/opt/homebrew/bin:$PATH
 ```
 
-7.  Press `Shift` and :
-8.  Type `wq`
-9.  Press `Enter`
-10. Source new config file, run terminal command `source ~/.zshrc`
+7.  **Press** `Shift` and :
+8.  **Type** `wq`
+9.  **Press** `Enter`
+10. Source new config file, **run** $`source ~/.zshrc`
 
 ### AWS CLI Installation
 
@@ -115,24 +117,24 @@ export PATH=/opt/homebrew/bin:$PATH
 
 The following instructions are for MacOS users:
 
-1.  Run terminal command `curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"`
-2.  Run terminal command `sudo installer -pkg AWSCLIV2.pkg -target /`
+1.  **Run** $`curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"`
+2.  **Run** $`sudo installer -pkg AWSCLIV2.pkg -target /`
 3.  Confirm AWS CLI has been installed:
-    1.  Run terminal command `which aws`
-    2.  Run terminal command `aws --version`
+    1.  **Run** $`which aws`
+    2.  **Run** $`aws --version`
 
 ### Terraform CLI Installation
 
-**Note**: If you already have homebrew installed please confirm by running `brew --version`, no error message should occur.
+**Note**: If you already have homebrew installed please confirm by **running** $`brew --version`, no error message should occur.
 
 To install terraform on MacOS we will be using homebrew. If you do not have homebrew installed on your computer please follow the installation instructions [here](https://brew.sh/), before continuing.
 
 Based on Terraform CLI installation instructions provided [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
 
-1.  Run terminal command `brew tap hashicorp/tap`
-2.  Run terminal command `brew install hashicorp/tap/terraform`
-3.  Run terminal command `brew update`
-4.  Run terminal command `brew upgrade hashicorp/tap/terraform`
+1.  **Run** $`brew tap hashicorp/tap`
+2.  **Run** $`brew install hashicorp/tap/terraform`
+3.  **Run** $`brew update`
+4.  **Run** $`brew upgrade hashicorp/tap/terraform`
 
 If this has been unsuccessful you might need to install xcode command line tools, try:
 
@@ -140,24 +142,24 @@ If this has been unsuccessful you might need to install xcode command line tools
 
 ## AWS CLI Setup
 
-1.  Run terminal command: `export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
+1.  **Run** $`export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]`
     -   sets terminal environmental variable. Replace `[YOUR_AWS_ACCESS_KEY]` with your value
-2.  Run terminal command: `export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
+2.  **Run** $`export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]`
     -   sets terminal environmental variable. Replace `[AWS_SECRET_ACCESS_KEY]` with your value
-3.  Run terminal command: `export AWS_REGION=us-east-1`
+3.  **Run** $`export AWS_REGION=us-east-1`
     -   sets terminal environmental variable
-4.  Run terminal command `aws configure set aws_access_key_id $AWS_ACCESS_KEY`
+4.  **Run** $`aws configure set aws_access_key_id $AWS_ACCESS_KEY`
     -   writes value to AWS credentials file (`~/.aws/credentials`)
-5.  Run terminal command `aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY`
+5.  **Run** $`aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY`
     -   writes value to AWS credentials file (`~/.aws/credentials`)
-6.  Run terminal command `aws configure set region $AWS_REGION`
+6.  **Run** $`aws configure set region $AWS_REGION`
     -   writes value to AWS config file (`~/.aws/config`)
 
 To check set values:
 
-Run `echo $AWS_ACCESS_KEY` to display the local environmental variable value set with the `export` command.
+**Run** $`echo $AWS_ACCESS_KEY` to display the local environmental variable value set with the `export` command.
 
-Likewise, running `aws configure get aws_access_key_id` will print aws environment variable values stored in the AWS credentials file.
+Likewise, **run** $`aws configure get aws_access_key_id` to print aws environment variable values stored in the AWS credentials file.
 
 ## Clear Existing AWS Resources 
 
@@ -167,24 +169,24 @@ Likewise, running `aws configure get aws_access_key_id` will print aws environme
 
 In order to run `initial_setup.py` we need to create a virtual environment to run the script in. **Note**: Please make sure that your terminal is currently in your working directory that should end in `artis-hpc`, by running the terminal command `pwd`.
 
-1.  Create a virtual environment, run terminal command:`python3 -m venv venv`
-2.  Open virtual environment, run terminal command: `source venv/bin/activate`
-3.  Install all required python modules, run terminal command: `pip3 install -r requirements.txt`
-4.  Check that all python modules have been downloaded, run terminal command `pip3 list` and check that all modules in the requirements.txt file are included.
+1.  Create a virtual environment, **run** $`python3 -m venv venv`
+2.  Open virtual environment, **run** $`source venv/bin/activate`
+3.  Install all required python modules, **run** $`pip3 install -r requirements.txt`
+4.  Check that all python modules have been downloaded, **run** $`pip3 list` and check that all modules in the `requirements.txt` file are included.
 
 If an error occurs please follow these instructions:
 
-5.  Upgrade your version of pip by running terminal command: `pip install --upgrade pip`
-6.  Install all required python modules, run terminal command: `pip3 install -r requirements.txt`
-7.  If errors still occur install each python package in the requirements.txt file individually, run terminal command `pip3 install [PACKAGE NAME]` ie `pip3 install urllib3`.
+5.  Upgrade your version of pip,  **run** $`pip install --upgrade pip`
+6.  Install all required python modules, **run** $`pip3 install -r requirements.txt`
+7.  If errors still occur install each python package in the `requirements.txt` file individually, **run** $`pip3 install [PACKAGE NAME]` ie $`pip3 install urllib3`.
 
 ## Setting Up a New ARTIS HPC on AWS 
 
 The `initial_setup.py` script will create all necessary AWS infrastructure with terraform, upload all model inputs to an AWS S3 bucket `artis-s3-bucket`, and create and upload a docker image `artis-image` defaulted with files in `docker_image_files_original/` directory. These files allow the docker image to download all R scripts and model inputs from the `artis-s3-bucket/ARTIS_model_code/`. Anytime there are edits or changes to the ARTIS model codebase there is no need to recreate the docker image, skip to [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
 
-1.  Open Docker Desktop
-2.  Take note of any existing docker images and containers relating to other projects, and delete all docker containers relating to ARTIS, delete all docker images relating to ARTIS.
-3.  Create AWS infrastructure, upload model inputs, and create new ARTIS docker image, use the terminal command:
+1.  **Open** Docker Desktop
+2.  **Take note** of any existing docker images and containers relating to other projects, and **delete** all docker containers relating to ARTIS, **delete** all docker images relating to ARTIS.
+3.  Create AWS infrastructure, upload model inputs, and create new ARTIS docker image, **run**:
 
 ``` sh
 python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 artis-s3-bucket -ecr artis-image
@@ -203,7 +205,7 @@ python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR 
 
 **Example command** (using credentials stored in local environmental variables set above and creating the docker image from scratch):
 
-``` default
+``` sh
 python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret_key $AWS_SECRET_ACCESS_KEY -s3 artis-s3-bucket -ecr artis-image
 ```
 
@@ -213,19 +215,19 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 **Note:** All AWS infrastructure has already been created and there are only edits to the model input files or ARTIS model code.
 
--   Make sure to put all new R scripts or model inputs in the relevant `data_s3_upload` directory and run:
+-   Make sure to put all new R scripts or model inputs in the relevant `data_s3_upload` directory and **run**:
 
 ``` sh
 python3 s3_upload.py
 python3 submit_artis_jobs.py
 ```
 
-**Check status of jobs submitted to AWS batch** 
+*Check status of jobs submitted to AWS batch* 
 -   navigate to AWS in your browser and log in to your IAM account.
 -   Use the search bar at the top of the page to search for "batch" and click on the Service Batch result.
 -   Under "job queue overview" you will be able to see job status. 
 
-**Troubleshoot "failed" jobs**
+*Troubleshoot "failed" jobs*
 -   Click on number below "failed" column of job queue
 -   Identify and open relevant failed job. Inspect "Job attempts" for "status reason" value. 
 -   Search for "cloudwatch" in search bar and click on the Service CloudWatch
@@ -234,17 +236,19 @@ python3 submit_artis_jobs.py
 
 ## Combine all ARTIS model outputs into database ready CSVs 
 
+**run**
 ``` sh
 python3 submit_combine_tables_job.py
 ```
 
 # Download results, Clean up AWS and Docker environments 
 
-1.  Download "outputs" folder from AWS, run terminal command `python3 s3_download.py`
-2.  Destroy all AWS resources and dependencies created, run terminal command `terraform destroy`
-3.  Open Docker Desktop app and delete all containers created
-4.  Open Docker Desktop app and delete all images created
-5.  Close python environment, run terminal command: `deactivate`
+1.  Download "outputs" folder from AWS, **run** $`python3 s3_download.py`
+2.  Destroy all AWS resources and dependencies created, **run** $`terraform destroy`
+3.  **Open** Docker Desktop app,
+    4.  **Delete** all containers created
+    5.  **Delete** all images created
+6.  Close python environment, **run** $`deactivate`
 
 ## Create AWS IAM User
 
