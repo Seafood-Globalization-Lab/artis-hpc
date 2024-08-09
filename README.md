@@ -57,12 +57,14 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
 
 1.  At project root directory **run** $`mkdir data_s3_upload`
 2.  Within `artis-hpc/data_s3_uplaod` **run** $`mkdir ARTIS_model_code`
-3.  **Copy** the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
-4.  **Copy** the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-5.  **Copy** the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-6.  **Copy** the most up-to-date ARTIS R package `DESCRIPTION` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-7.  **Copy** the most up-to-date .Renviron file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-8. **Copy** the most up-to-date double number ARTIS `.R` scripts (i.e. `02-artis-pipeline.R`) to `artis-hpc/data_s3_upload/ARTIS_model_code/` (AM - check that this is correct)
+3.  Create a copy of `02-artis-pipeline.R` script for each HS version you wish to run, and rename the scripts `02-artis-pipeline_hs[HS VERSION YOU WANT TO RUN].R` (ie for HS version 12, `02-artis-pipeline_hs12.R)`.
+4.  Add on line 29 of each 02-artis-pipeline.R script the line `hs_version_run <- "[HS VERSION YOU ARE RUNNING]"` (ie for HS version 12, `hs_version_run <- "12"`)
+5.  **Copy** the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
+6.  **Copy** the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+7.  **Copy** the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+8.  **Copy** the most up-to-date ARTIS R package `DESCRIPTION` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+9.  **Copy** the most up-to-date .Renviron file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+10. **Copy** the most up-to-date double number ARTIS `.R` scripts (i.e. `02-artis-pipeline.R`) to `artis-hpc/data_s3_upload/ARTIS_model_code/` (AM - check that this is correct)
 
 *If running on a new Apple chip arm64*:
 
