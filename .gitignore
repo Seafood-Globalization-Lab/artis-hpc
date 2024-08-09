@@ -34,3 +34,8 @@ docker_image_files/
 .Rhistory
 .Rproj.user
 artis-hpc.Rproj
+
+# rendered README
+README.html
+
+
