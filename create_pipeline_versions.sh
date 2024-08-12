@@ -28,7 +28,7 @@ do
   modified_script=$(echo "$original_script" | sed "29s/.*/hs_version_run <- \"$hs_version\"/")
 
   # Define the new file name
-  new_file_name="data_s3_upload/ARTIS_model_code/02-artis-pipeline-hs${hs_version}.R"
+  new_file_name="data_s3_upload/ARTIS_model_code/02-artis-pipeline_hs${hs_version}.R"
 
   # Write the modified script to a new file
   echo "$modified_script" > "$new_file_name"
