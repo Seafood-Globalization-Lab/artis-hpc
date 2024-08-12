@@ -220,7 +220,7 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 -   Make sure to put all new R scripts or model inputs in the relevant `data_s3_upload` directory
 -   **Run**: $`python3 s3_upload.py` to upload local model code and inputs to AWS S3 bucket `artis-s3-bucket`
--   **Run**: $`python3 submit_artis_jobs.py` to submit batch jobs on AWS. Loops through designated HS versions to run corresponding shell scripts to source 'docker_image_artis_pkg_download.R' and '02-artis-pipeline_[hs version].R'
+-   **Run**: $`python3 submit_artis_jobs.py` to submit batch jobs on AWS. Loops through designated HS versions to run corresponding shell scripts to source `docker_image_artis_pkg_download.R` and `02-artis-pipeline_[hs version].R`
 
 *Check status of jobs submitted to AWS batch* 
 -   navigate to AWS in your browser and log in to your IAM account.
