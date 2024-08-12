@@ -27,8 +27,8 @@ venv/
 # Data
 data_s3_upload/ARTIS_model_code/*
 data_s3_upload/model_inputs/*
-!data_s3_upload/ARTIS_model_code/
-!data_s3_upload/model_inputs/
+!data_s3_upload/ARTIS_model_code/.gitkeep
+!data_s3_upload/model_inputs/.gitkeep
 
 *outputs/
 docker_image_files/
