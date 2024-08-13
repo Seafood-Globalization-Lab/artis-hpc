@@ -172,24 +172,26 @@ Likewise, **run** $`aws configure get aws_access_key_id` to print aws environmen
 
 In order to run `initial_setup.py` we need to create a virtual environment to run the script in. **Note**: Please make sure that your terminal is currently in your working directory that should end in `artis-hpc`, by running the terminal command `pwd`.
 
-1.  Create a virtual environment, **run** $`python3 -m venv venv`
-2.  Open virtual environment, **run** $`source venv/bin/activate`
-3.  Install all required python modules, **run** $`pip3 install -r requirements.txt`
-4.  Check that all python modules have been downloaded, **run** $`pip3 list` and check that all modules in the `requirements.txt` file are included.
+1.  **Run** $`python3 -m venv venv` to create a virtual environment
+2.  **Run** $`source venv/bin/activate` to pen virtual environment
+3.  **Run** $`pip3 install -r requirements.txt` to install all required python modules
+4.  **Run** $`pip3 list` to check that all python modules have been downloaded. Check that all modules in the `requirements.txt` file are included.
 
 If an error occurs please follow these instructions:
 
-5.  Upgrade your version of pip,  **run** $`pip install --upgrade pip`
-6.  Install all required python modules, **run** $`pip3 install -r requirements.txt`
-7.  If errors still occur install each python package in the `requirements.txt` file individually, **run** $`pip3 install [PACKAGE NAME]` ie $`pip3 install urllib3`.
+5.  Upgrade your version of pip,  **Run** $`pip install --upgrade pip`
+6.  Install all required python modules, **Run** $`pip3 install -r requirements.txt`
+7.  If errors still occur install each python package in the `requirements.txt` file individually, **Run** $`pip3 install [PACKAGE NAME]` ie $`pip3 install urllib3`.
 
 ## Setting Up a New ARTIS HPC on AWS 
 
 The `initial_setup.py` script will create all necessary AWS infrastructure with terraform, upload all model inputs to an AWS S3 bucket `artis-s3-bucket`, and create and upload a docker image `artis-image` defaulted with files in `docker_image_files_original/` directory. These files allow the docker image to download all R scripts and model inputs from the `artis-s3-bucket/ARTIS_model_code/`. Anytime there are edits or changes to the ARTIS model codebase there is no need to recreate the docker image, skip to [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
 
 1.  **Open** Docker Desktop
-2.  **Take note** of any existing docker images and containers relating to other projects, and **delete** all docker containers relating to ARTIS, **delete** all docker images relating to ARTIS.
-3.  Create AWS infrastructure, upload model inputs, and create new ARTIS docker image, **run**:
+2.  **Take note** of any existing docker images and containers relating to other projects and
+    -  **Delete** all docker containers relating to ARTIS,
+    -  **Delete** all docker images relating to ARTIS.
+4.  Create AWS infrastructure, upload model inputs, and create new ARTIS docker image, **Run**:
 
 ``` sh
 python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 artis-s3-bucket -ecr artis-image
@@ -236,7 +238,7 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 ## Combine all ARTIS model outputs into database ready CSVs 
 
--    **Run** `python3 submit_combine_tables_job.py`
+-    **Run** $`python3 submit_combine_tables_job.py`
 
 # Download results, Clean up AWS and Docker environments 
 
