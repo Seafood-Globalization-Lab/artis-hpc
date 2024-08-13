@@ -185,7 +185,7 @@ If an error occurs please follow these instructions:
 
 ## Setting Up a New ARTIS HPC on AWS 
 
-The `initial_setup.py` script will create all necessary AWS infrastructure with terraform, upload all model inputs to an AWS S3 bucket `artis-s3-bucket`, and create and upload a docker image `artis-image` defaulted with files in `docker_image_files_original/` directory. These files allow the docker image to download all R scripts and model inputs from the `artis-s3-bucket/ARTIS_model_code/`. Anytime there are edits or changes to the ARTIS model codebase there is no need to recreate the docker image, skip to [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
+The `initial_setup.py` script will create all necessary AWS infrastructure with terraform, upload all model inputs to an AWS S3 bucket `artis-s3-bucket`, create and upload a docker image `artis-image` defaulted with files in `docker_image_files_original/` directory, and submit jobs to AWS batch. Files in `docker_image_files_original/` allow the docker image to import all R scripts and model inputs from the `artis-s3-bucket/ARTIS_model_code/`. Anytime there are edits or changes to the ARTIS model codebase there is no need to recreate the docker image, skip to [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
 
 1.  **Open** Docker Desktop
 2.  **Take note** of any existing docker images and containers relating to other projects and
