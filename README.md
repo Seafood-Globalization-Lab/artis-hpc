@@ -236,19 +236,16 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 ## Combine all ARTIS model outputs into database ready CSVs 
 
-**run**
-``` sh
-python3 submit_combine_tables_job.py
-```
+-    **Run** `python3 submit_combine_tables_job.py`
 
 # Download results, Clean up AWS and Docker environments 
 
-1.  Download "outputs" folder from AWS, **run** $`python3 s3_download.py`
-2.  Destroy all AWS resources and dependencies created, **run** $`terraform destroy`
+1.  **Run** $`python3 s3_download.py` to download "outputs" folder from AWS, 
+2.  **Run** $`terraform destroy` to destroy all AWS resources and dependencies created
 3.  **Open** Docker Desktop app,
     4.  **Delete** all containers created
     5.  **Delete** all images created
-6.  Close python environment, **run** $`deactivate`
+6.  **Run** $`deactivate` to close python environment, 
 
 ## Create AWS IAM User
 
