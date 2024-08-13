@@ -58,8 +58,8 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
 1.  At project root directory **Run** $`mkdir data_s3_upload`
 2.  Within `artis-hpc/data_s3_uplaod` **Run** $`mkdir ARTIS_model_code`
 3.  **Copy** `02-artis-pipeline.R` script to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-4.  **Run** $`export HS_VERSIONS="[HS VERSIONS YOU ARE RUNNING, NO SPACES]"` i.e. $`export HS_VERSIONS="02,07,12,17,96"`
-5.  **Run** $`./create_pipeline_versions.sh` to create a new version of `02-artis-pipeline.R` for every HS version specified to run
+4.  **Run** $`export HS_VERSIONS="[HS VERSIONS YOU ARE RUNNING, NO SPACES]"` i.e. $`export HS_VERSIONS="02,07,12,17,96"` to specify which HS versions to run
+5.  **Run** $`./create_pipeline_versions.sh` to create a new version of `02-artis-pipeline.R` for every HS version specified to run in `HS_VERSIONS`
 7.  **Copy** the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
 8.  **Copy** the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
 9.  **Copy** the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
