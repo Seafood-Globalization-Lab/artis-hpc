@@ -9,33 +9,53 @@ fi
 # Convert HS_VERSIONS to an array
 IFS=',' read -r -a hs_versions <<< "$HS_VERSIONS"
 
-# Path to the original script
-original_script_path="data_s3_upload/ARTIS_model_code/02-artis-pipeline.R"
+# Paths to the original scripts
+pipeline_script_path="data_s3_upload/ARTIS_model_code/02-artis-pipeline.R"
+aws_setup_script_path="data_s3_upload/ARTIS_model_code/00-aws-hpc-setup.R"
 
-# Check if the original script exists
-if [ ! -f "$original_script_path" ]; then
-  echo "Original script not found at $original_script_path!"
-  exit 1
-fi
+# Function to create modified scripts
+create_modified_script() {
+  local original_script_path=$1
+  local line_number=$2
+  local script_name=$3
+  local replace_source=$4
 
-# Read the original script into a variable
-original_script=$(cat "$original_script_path")
+  # Check if the original script exists
+  if [ ! -f "$original_script_path" ]; then
+    echo "Original script not found at $original_script_path!"
+    exit 1
+  fi
 
-# Loop through each HS version and create a new script
-for hs_version in "${hs_versions[@]}"
-do
-  # Modify the relevant line (29th line)
-  modified_script=$(echo "$original_script" | sed "29s/.*/hs_version_run <- \"$hs_version\"/")
+  # Read the original script into a variable
+  original_script=$(cat "$original_script_path")
 
-  # Define the new file name
-  new_file_name="data_s3_upload/ARTIS_model_code/02-artis-pipeline_hs${hs_version}.R"
+  # Loop through each HS version and create a new script
+  for hs_version in "${hs_versions[@]}"
+  do
+    # Modify the relevant line to set hs_version_run
+    modified_script=$(echo "$original_script" | sed "${line_number}s/.*/hs_version_run <- \"$hs_version\"/")
 
-  # Write the modified script to a new file
-  echo "$modified_script" > "$new_file_name"
+    # Replace the source line if required
+    if [ "$replace_source" = true ]; then
+      modified_script=$(echo "$modified_script" | sed "13s|source(\"00-aws-hpc-setup.R\")|source(\"00-aws-hpc-setup_hs${hs_version}.R\")|")
+    fi
 
-  # Print a message to confirm the file creation
-  echo "Created $new_file_name with hs_version_run set to $hs_version"
-done
+    # Define the new file name
+    new_file_name="data_s3_upload/ARTIS_model_code/${script_name}_hs${hs_version}.R"
+
+    # Write the modified script to a new file
+    echo "$modified_script" > "$new_file_name"
+
+    # Print a message to confirm the file creation
+    echo "Created $new_file_name with hs_version_run set to $hs_version"
+  done
+}
+
+# Create modified versions for 02-artis-pipeline.R (29th line) and update source on line 13
+create_modified_script "$pipeline_script_path" 29 "02-artis-pipeline" true
+
+# Create modified versions for 00-aws-hpc-setup.R (28th line)
+create_modified_script "$aws_setup_script_path" 28 "00-aws-hpc-setup" false
 
 # Print a final message to confirm the process is done
-echo "All HS version pipeline scripts have been created successfully!"
+echo "All HS version scripts have been created successfully!"
