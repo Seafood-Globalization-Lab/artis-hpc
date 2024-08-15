@@ -73,7 +73,7 @@ s3_bucket_name = "artis-s3-bucket"
 
 # Upload all model inputs data to S3 bucket
 data_s3_upload_dir = "data_s3_upload"
-model_inputs_dir = "model_inputs_20240213"
+model_inputs_dir = "model_inputs"
 datadir = os.path.join(data_s3_upload_dir, model_inputs_dir)
 print(datadir)
 datadir_contents = os.listdir(datadir)
