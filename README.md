@@ -55,22 +55,21 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
 
 ## Update ARTIS model scripts and model inputs 
 
-1.  At project root directory **Run** $`mkdir data_s3_upload`
-2.  Within `artis-hpc/data_s3_uplaod` **Run** $`mkdir ARTIS_model_code`
-3.  **Copy** `02-artis-pipeline.R` script to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-4.  **Run** $`export HS_VERSIONS="[HS VERSIONS YOU ARE RUNNING, NO SPACES]"` i.e. $`export HS_VERSIONS="02,07,12,17,96"` to specify which HS versions to run
-5.  **Run** $`./create_pipeline_versions.sh` to create a new version of `02-artis-pipeline.R` for every HS version specified to run in `HS_VERSIONS`
-7.  **Copy** the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
-8.  **Copy** the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-9.  **Copy** the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-10.  **Copy** the most up-to-date ARTIS R package `DESCRIPTION` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-11.  **Copy** the most up-to-date .Renviron file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
-12. **Copy** the most up-to-date double number ARTIS `.R` scripts (i.e. `02-artis-pipeline.R`) to `artis-hpc/data_s3_upload/ARTIS_model_code/` (AM - check that this is correct)
+1.  **Copy** `00-aws-hpc-setup.R` script to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+2.  **Copy** `02-artis-pipeline.R` script to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+3.  **Copy** `03-combine-tables.R` script to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+4.  **Run** $`export HS_VERSIONS="[HS VERSIONS YOU ARE RUNNING, NO SPACES]"` i.e. $`export HS_VERSIONS="02,07,12,17,96"` or $`export HS_VERSIONS="17"` to specify which HS versions to run
+5.  **Run** $`./create_pipeline_versions.sh` to create a new version of `02-artis-pipeline.R` and `00-aws-hpc-setup.R` for every HS version specified to run in `HS_VERSIONS` in `artis-hpc/data_s3_upload/ARTIS_model_code/`
+6.  **Copy** the most up-to-date set of `model_inputs` to `artis-hpc/data_s3_upload/` directory. Retain the folder name `model_inputs`
+7.  **Copy** the most up-to-date ARTIS `R/` package folder to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+8.  **Copy** the most up-to-date ARTIS R package `NAMESPACE` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+9. **Copy** the most up-to-date ARTIS R package `DESCRIPTION` file to `artis-hpc/data_s3_upload/ARTIS_model_code/`
+10. **Copy** the most up-to-date .Renviron file to `artis-hpc/data_s3_upload/ARTIS_model_code/` (-AM is this needed?)
 
 *If running on a new Apple chip arm64*:
 
-9.  **Copy** arm64_venv_requirements.txt file from the root directory to the `artis-hpc/docker_image_files_original/`
-10.  **Rename** the file `artis-hpc/docker_image_files_original/arm64_venv_requirements.txt` to `artis-hpc/docker_image_files_original/requirements.txt`
+11.  **Copy** arm64_venv_requirements.txt file from the root directory to the `artis-hpc/docker_image_files_original/`
+12.  **Rename** the file `artis-hpc/docker_image_files_original/arm64_venv_requirements.txt` to `artis-hpc/docker_image_files_original/requirements.txt`
 
 ## Installations
 
@@ -86,7 +85,7 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
 
 **Note**: If you already have Homebrew installed please still confirm by following step 3 below. Both instructions should run without an error message.
 
-1.  Install homebrew - **run**
+1.  Install homebrew - **run**$
 
 ``` sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -252,3 +251,27 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 ## Create AWS IAM User
 
 **FIXIT**: include screenshots for creating an IAM user with the correct admin permissions.
+
+## Directory Structures
+
+### Docker Image `artis-image` 
+
+*This needs to be corrected - just a placeholder*
+
+/home/ec2-user/artis/
+│
+├── model_inputs/
+│   ├── code_max_resolved.csv
+│   ├── (Other input files)
+│
+├── ARTIS_model_code/
+│   ├── 02-artis-pipeline.R
+│   ├── 00-aws-hpc-setup.R
+│   ├── R/
+│   │   ├── (Various R scripts)
+│   │
+│   └── (Other model code files)
+│
+└── output/ (Optional)
+    ├── (Output files and logs)
+
