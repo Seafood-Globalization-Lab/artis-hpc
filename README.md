@@ -254,24 +254,51 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 ## Directory Structures
 
-### Docker Image `artis-image` 
+### Docker Container `artis-image` 
 
-*This needs to be corrected - just a placeholder*
+Once the docker image `artis-image` has been uploaded to AWS ECR, the docker container `artis-image` will need to import all R scripts and model inputs from the `artis-s3-bucket` on AWS. Once $`python3 submit_artis_jobs.py` is run, the docker container will be used to run the ARTIS model code on AWS Batch. Each HS version specified in the model will create: a new job on AWS Batch to run ARTIS and a new instance of the docker container will be created for each HS version specified within each job. Each docker instance will only import the scripts and model inputs for the HS version and years it is running from `artis-s3-bucket` (occurs when `docker_image_artis_pkg_download.R` is sourced in `job_shell_scripts/`).
+
+
+
+```sh
 
 /home/ec2-user/artis/
 │
-├── model_inputs/
-│   ├── code_max_resolved.csv
-│   ├── (Other input files)
+├── clean_fao_prod.csv
+├── clean_fao_taxa.csv
+├── clean_sau_prod.csv
+├── clean_sau_taxa.csv
+├── clean_taxa combined.csv
+├── code_max_resolved.csv
+├── fao_annual_pop.csv
+├── hs-hs-match_HS[VERSION].csv (one file per each HS version)
+├── hs-taxa-CF_strict-match_HS[VERSION].csv 
+├── hs-taxa-match_HS[VERSION].csv
+├── standardized_baci_seafood_hs[VERSION]_y[YEAR]_including_value.csv (one file per HS version/year combination)
+├── standardized_baci_seafood_hs[VERSION]_y[YEAR].csv (one file per HS version/year combination)
+├── standardized_combined_prod.csv
+├── standardized_fao_prod.csv
+├── standardized_sau_taxa.csv
 │
-├── ARTIS_model_code/
-│   ├── 02-artis-pipeline.R
-│   ├── 00-aws-hpc-setup.R
-│   ├── R/
-│   │   ├── (Various R scripts)
-│   │
-│   └── (Other model code files)
-│
-└── output/ (Optional)
-    ├── (Output files and logs)
+│(Files pulled from `ARTIS_model_code/` in `artis-s3-bucket`. Folder not retained)
+├── 00-aws-hpc-setup_hs[VERSION].R
+├── 02-artis-pipeline_hs[VERSION].R
+├── 03-combine-tables.R
+├── NAMESPACE
+├── DESCRIPTION
+└── R/
+    ├── build_artis_data.R
+    ├── calculate_consumption.R
+    ├── categorize_hs_to_taxa.R
+    ├── classify_prod_dat.R
+    ├── clean_fb_slb_synonyms.R
+    ├── clean_hs.R
+    ├── collect_data.R
+    ├── compile_cf.R
+    ├── create_export_source_weights.R
+    ├── create_reweight_W_long.R
+    ├── create_reweight_X_long.R
+    ├── create_snet.R
+    └── (Add all files)
 
+```
