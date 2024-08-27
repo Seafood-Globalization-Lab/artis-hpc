@@ -2,7 +2,7 @@
 
 This repository contains the instructions to create the ARTIS High Performance Computer (HPC) on Amazon Web Services (AWS) and run the ARTIS model. There are two scenarios for using this repository:
 
-1)  Setting up a new ARTIS HPC on AWS
+1) Setting up a new ARTIS HPC on AWS
 2) Running an Existing ARTIS HPC Setup
 
 *All commands will be run in the terminal/command line and indicated with a "$" before the command or contained within a code block*
@@ -52,6 +52,19 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
         -   Submit jobs to ARTIS HPC
 -   `R`
     -   Pull all model outputs data
+    
+### AWS Batch Based Architecture
+
+[Content from AWS Documentation](https://docs.aws.amazon.com/it_it/wellarchitected/latest/high-performance-computing-lens/batch-based-architecture.html)
+
+![](./images/aws_batch_arch.png)
+
+Basic workflow steps:
+
+1) User creates a job container (`artis-image`), uploads the container to the Amazon Elastic Container Registry or another container registry (for example, DockerHub), and creates a job definition to AWS Batch. 
+2) User submits jobs to a job queue in AWS Batch. 
+3) AWS Batch pulls the image from the container registry and processes the jobs in the queue 
+4) Input and output data from each job is stored in an S3 bucket (`artis-s3-bucket`)
 
 ## Update ARTIS model scripts and model inputs 
 
@@ -256,7 +269,7 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 Once the docker image `artis-image` has been uploaded to AWS ECR, the docker container `artis-image` will need to import all R scripts and model inputs from the `artis-s3-bucket` on AWS. Once $`python3 submit_artis_jobs.py` is run, a new job on AWS Batch will run ARTIS on a new instance of the docker container for each HS version specified within each job. Each docker instance will only import the scripts and model inputs for the HS version and years it is running from `artis-s3-bucket` (occurs when `docker_image_artis_pkg_download.R` is sourced in `job_shell_scripts/`).
 
-
+Example directory structure within `artis-image`:
 
 ```sh
 
