@@ -21,8 +21,12 @@ This repository contains the instructions to create the ARTIS High Performance C
 -   [Setup Local Python Environment](#setup-local-python-environment)
 -   [AWS CLI Setup](#aws-cli-setup)
 -   [Update ARTIS Model Scripts and Model Inputs](#update-artis-model-scripts-and-model-inputs)
--   [Setting Up a New ARTIS HPC on AWS](#setting-up-a-new-artis-hpc-on-aws)
--   [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
+-   [Setting Up New ARTIS HPC on AWS](#setting-up-new-artis-hpc-on-aws)
+-   [Running Existing ARTIS HPC Setup](#running-existing-artis-hpc-setup)
+-   [Checks & Troubleshooting](#checks-troubleshooting)
+    -   [Status of jobs submitted to AWS batch](#status-of-jobs-submitted-to-aws-batch)
+    -   [Troubleshoot failed jobs](#troubleshoot-failed-jobs)
+    -   [Check CloudWatch logs for specific job](#check-cloudwatch-logs-for-specific-job)
 -   [Combine All ARTIS Model Outputs into Database Ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)
 -   [Download Results, Clean Up AWS and Docker Environments](#download-results-clean-up-aws-and-docker-environments)
 -   [Create AWS IAM user](#create-aws-iam-user)
@@ -219,9 +223,11 @@ You will need to transfer ARTIS code and input data (likely from [Seafood-Global
 10.  **Rename** the file `artis-hpc/docker_image_files_original/arm64_venv_requirements.txt` to `artis-hpc/docker_image_files_original/requirements.txt`
 
 
-## Setting Up a New ARTIS HPC on AWS 
+## Setting Up New ARTIS HPC on AWS 
 
-The `initial_setup.py` script will create all necessary AWS infrastructure with terraform, upload all model inputs to an AWS S3 bucket `artis-s3-bucket`, create and upload a docker image `artis-image` defaulted with files in `docker_image_files_original/` directory, and submit jobs to AWS batch. Files in `docker_image_files_original/` allow the docker image to import all R scripts and model inputs from the `artis-s3-bucket/ARTIS_model_code/`. Anytime there are edits or changes to the ARTIS model codebase there is no need to recreate the docker image, skip to [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)
+The `initial_setup.py` script automates the setup process for running the ARTIS model on AWS. It begins by configuring the environment based on the specified chip architecture, copying the appropriate `Dockerfile` to the project root, and embedding AWS credentials. The script then creates the necessary AWS infrastructure using Terraform, uploads model input files to the specified S3 bucket, and builds a Docker image using files from the `docker_image_files_original/` directory. This image is uploaded to the AWS ECR repository. Finally, the script submits jobs to AWS Batch for model execution. In case of an error, the script automatically cleans up all created AWS resources. 
+
+*Anytime there are edits or changes to the ARTIS model codebase there is no need to recreate the docker image, skip to [Running an Existing ARTIS HPC Setup](#running-an-existing-artis-hpc-setup)*
 
 1.  **Open** Docker Desktop
 2.  **Take note** of any existing docker images and containers relating to other projects and
@@ -233,40 +239,145 @@ The `initial_setup.py` script will create all necessary AWS infrastructure with 
 python3 initial_setup.py -chip [YOUR CHIP INFRASTRUCTURE] -aws_access_key [YOUR AWS KEY] -aws_secret_key [YOUR AWS SECRET KEY] -s3 artis-s3-bucket -ecr artis-image
 ```
 
-  - Details:
-    - If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be `arm64`, otherwise for intel chips it will be `x86`
-  - If you have an existing docker image you would like to use include the `-di [existing docker image name]` flag.
-    - **Recommendation**: the default options will create a docker image called `artis-image`, so if you want to use the previously created default docker image you would include `-di artis-image`.
-    - **Note:** The AWS docker image repository and the docker image created with default options both have the name `artis-image`, however they are two different resources.
+**Details**:
 
-**Example command** (using credentials stored in local environmental variables set above and using existing docker image `artis-image` with the `latest` tag):
+  - If you are using an Apple Silicone chip (M1, M2, M3, etc) your chip will be `arm64`, otherwise for intel chips it will be `x86`
+  - If you have an existing docker image you would like to use include the `-di [existing docker image name]` flag.
+  - **Recommendation**: the default options will create a docker image called `artis-image`, so if you want to use the previously created default docker image you would include `-di artis-image`.
+  - **Note:** The AWS docker image repository and the docker image created with default options both have the name `artis-image`, however they are two different resources.
+
+**Example command**: 
+
+  - Using credentials stored in local environmental variables set above
+  - Using existing docker image `artis-image` with the `latest` tag)
 
 ``` sh
 python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret_key $AWS_SECRET_ACCESS_KEY -s3 artis-s3-bucket -ecr artis-image -di artis-image:latest
 ```
 
-**Note:** If terraform states that it created all resources however when you log into the AWS console to confirm cannot see them, they have most likely been created as part of another account. Run `terraform destroy -auto-approve` on the command line. Confirmed you have followed the AWS CLI set up instructions with the correct set of keys (AWS access key and AWS secret access key).
+**Troubleshooting Tip:** If terraform states that it created all resources however when you log into the AWS console to confirm cannot see them, they have most likely been created as part of another account. Run `terraform destroy -auto-approve` on the command line. Confirmed you have followed the AWS CLI set up instructions with the correct set of keys (AWS access key and AWS secret access key).
 
-## Running an Existing ARTIS HPC Setup 
+*A successful and complete model run will then proceed to the next step [Combine all ARTIS model outputs into database ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)*
 
-**Note:** These instructions are only applicable if all AWS infrastructure has already been created and there are only edits to the model input files or ARTIS model code. 
+## Running Existing ARTIS HPC Setup 
 
--   Log onto AWS to check s3 bucket `artis-s3-bucket` for contents that need to be saved. Then **permanently delete** *all contents* of the `artis-s3-bucket` bucket.
--   Make sure to put all new R scripts or model inputs in the relevant `data_s3_upload` directory
--   **Run**: $`python3 s3_upload.py` to upload local model code and inputs to AWS S3 bucket `artis-s3-bucket`
--   **Run**: $`python3 submit_artis_jobs.py` to submit batch jobs on AWS. Loops through designated HS versions to run corresponding shell scripts to source `docker_image_artis_pkg_download.R` and `02-artis-pipeline_[hs version].R`
+**Note:** These instructions are only applicable if:
 
-*Check status of jobs submitted to AWS batch* 
--   navigate to AWS in your browser and log in to your IAM account.
--   Use the search bar at the top of the page to search for "batch" and click on the Service Batch result.
--   Under "job queue overview" you will be able to see job status. 
+  - all AWS infrastructure is created
+  - docker image `artis-image` is built and 
+  - the only changes are to files within `model_inputs/*` or `ARTIS_model_code/*`. 
 
-*Troubleshoot "failed" jobs*
--   Click on number below "failed" column of job queue
--   Identify and open relevant failed job. Inspect "Job attempts" for "status reason" value. 
--   Search for "cloudwatch" in search bar and click on the Service CloudWatch
--   In the left hand nav-bar click on "Logs"" then "Log groups" and next "/aws/batch/job"
--   Inspect "log stream" for timestamps and messages from running the model code. 
+1.  **Log onto AWS** to check s3 bucket `artis-s3-bucket` for contents that need to be saved. Then **permanently delete** *all contents* of the `artis-s3-bucket` bucket.
+2.  Make sure to put all new scripts or model inputs into the relevant `artis-hpc/data_s3_upload/` folders locally.
+3. **Run**: $`source venv/bin/activate` to open python environment (make sure proper requirements were installed [here](#setup-local-python-environment)) 
+3.  **Run**: $`python3 s3_upload.py` to upload local contents of `data_s3_upload/` to AWS S3 bucket `artis-s3-bucket`
+4.  **Run**: $`python3 submit_artis_jobs.py` to submit batch jobs on AWS. 
+    - Loops through designated `HS_VERSIONS` to run corresponding shell scripts to source `docker_image_artis_pkg_download.R` and `02-artis-pipeline_[hs version].R`
+    
+*A successful and complete model run will then proceed to the next step [Combine all ARTIS model outputs into database ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)*
+
+## Checks & Troubleshooting 
+
+### Status of jobs submitted to AWS batch:
+
+1.   navigate to AWS in your browser and log in to your IAM account.
+2.   Use the search bar at the top of the page to search for "batch" and click on the service Batch result.
+
+![AWS Search](./images/aws_batch_search.png)
+
+3.   Under "job queue overview" you will be able to see job statuses and click on number to open details. 
+
+![AWS Batch > Dashboard](./images/aws_batch_dash.png)
+  
+4.   Investigate individual job status and details through filters (be sure to click "search")
+
+![AWS Batch > Jobs](./images/aws_batch_jobs.png)
+
+
+### Troubleshoot failed jobs:
+
+1.   Set "Filter type" to "Status" and "Filter value" to "FAILED" in AWS Batch > Jobs window above. Click "Search" button.
+2.   Identify and open relevant failed job by clicking on job name. 
+3.   Inspect "Details" for Failed job, "Status Reason" is particularly helpful.
+4.   Click on "Log stream name" to open CloudWatch logs for the specific job. This displays the code output and error messages.
+    - **Note:** The "AWS Batch > Jobs > your-job-name" image below shows a common error message `ResourceInitializationError: unable to pull secrets or registry auth: [...]` when there is an issue initializing the resources required by the AWS Batch job. This is most likely a temporary network issue and can be resolved by re-running the specific job (HS version).
+
+![AWS Batch > Jobs > your-job-name](./images/aws_job_fail_error.png)
+
+**Note:** The image above shows a common error message when the model code is unable to find the correct file path.
+
+### Check CloudWatch logs for specific job:
+
+1.   Search for "cloudwatch" in search bar and click on the Service CloudWatch
+2.   In the left hand nav-bar click on "Logs"" then "Log groups" and next "/aws/batch/job"
+3.   Inspect "log streams" for (likely by "last event time") to identify and open correct log. 
+4.   Inspect messages, output, and errors from running the model code
+
+### Check for all expected outputs in S3 bucket:
+
+1.   Navigate to the `artis-s3-bucket` in AWS S3. 
+2.   Confirm that all expected outputs are present
+    - The `outputs` folder should contain a `snet/` subfolder that has each HS version specified in the `HS_VERSIONS` variable
+    - Each HS version folder should contain the applicable years 
+    
+*The expected directory structure is as follows:*
+
+```sh
+aws/artis-s3-bucket/
+└── outputs/
+    ├── cvxopt_snet/
+    │   ├── HS[VERSION]/
+    │   │   ├── [YEAR]/
+    │   │   │   ├── [RUN YYYY-MM-DD]_all-country-est_[YEAR]_HS[VERSION].RDS
+    │   │   │   ├── [RUN YYYY-MM-DD]_all-data-prior-to-solve-country_[YEAR]_HS[VERSION].RData (Might be only file for some year folders depending if all countries solved by quadprog)
+    │   │   │   ├── [RUN YYYY-MM-DD]_analysis-documentation_countries-with-no-solve-qp-solution_[YEAR]_HS[VERSION].txt
+    │   │   │   ├── [RUN YYYY-MM-DD]_country-est_[COUNTRY ISO3C]_[YEAR]_HS[VERSION].RDS
+    │   │   │   └── ...  
+    │   │   └── [YEAR]/
+    │   │       └── ...
+    │   └── HS[VERSION]/
+    │       └── ...
+    ├── quadprog_snet/
+    │   ├── HS[VERSION]/
+    │   │   ├── [YEAR]/
+    │   │   │   └── [RUN YYYY-MM-DD]_all-country-est_[YEAR]_HS[VERSION].RDS
+    │   │   │   ├── [RUN YYYY-MM-DD]_all-data-prior-to-solve-country_[YEAR]_HS[VERSION].RData
+    │   │   │   ├── [RUN YYYY-MM-DD]_analysis-documentation_countries-with-no-solve-qp-solution_[YEAR]_HS[VERSION].txt
+    │   │   │   ├── [RUN YYYY-MM-DD]_country-est_[COUNTRY ISO3C]_[YEAR]_HS[VERSION].RDS
+    │   │   │   └── ...
+    │   │   └── [YEAR]/
+    │   │       └── ...
+    │   │   └── no_solve_countries.csv (Key file to check)    
+    │   └── HS[VERSION]/
+    │       └── ...
+    ├── snet/
+    │   ├── HS[VERSION]/
+    │   │   └── [YEAR]/
+    │   │       ├── [RUN YYYY-MM-DD]_S-net_raw_midpoint_[YEAR]_HS[VERSION].csv
+    │   │       ├── [RUN YYYY-MM-DD]_all-country-est_[YEAR]_HS[VERSION].RDS
+    │   │       ├── [RUN YYYY-MM-DD]_consumption_[YEAR]_HS[VERSION].csv
+    │   │       ├── W_long_[YEAR]_HS[VERSION].csv
+    │   │       ├── X_long.csv
+    │   │       ├── first_dom_exp_midpoint.csv
+    │   │       ├── first_error_exp_midpoint.csv
+    │   │       ├── first_foreign_exp_midpoint.csv
+    │   │       ├── first_unresolved_foreign_exp_midpoint.csv
+    │   │       ├── hs_clade_match.csv
+    │   │       ├── reweight_W_long_[YEAR]_HS[VERSION].csv
+    │   │       ├── reweight_X_long_[YEAR]_HS[VERSION].csv
+    │   │       ├── second_dom_exp_midpoint.csv
+    │   │       ├── second_error_exp_midpoint.csv
+    │   │       ├── second_foreign_exp_midpoint.csv
+    │   │       └── second_unresolved_foreign_exp_midpoint.csv
+    │   ├── [YEAR]/
+    │   │   └── ...
+    │   ├── [YEAR]/
+    │   │   └── ...
+    │   ├── V1_long_HS17.csv
+    │   └── V2_long_HS17.csv
+
+
+```
 
 ## Combine all ARTIS model outputs into database ready CSVs 
 
@@ -284,10 +395,6 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 ## Create AWS IAM User
 
 **FIXIT**: include screenshots for creating an IAM user with the correct admin permissions.
-
-## Troubleshooting 
-
-![](./images/aws_job_fail_error.png)
 
 ## Directory Structures
 
