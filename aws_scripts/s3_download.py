@@ -1,4 +1,3 @@
-
 # libraries
 import os
 import boto3
@@ -41,17 +40,16 @@ for page in page_iterator:
     page_contents = page["Contents"]
     # Iterate over contents and create directories when needed otherwise download file
     for item in page_contents:
-        if item["Key"][-1] == "/":
-            print(f"Creating directory {item["Key"]}")
-            os.mkdir(item["Key"])
+        if item['Key'][-1] == "/":
+            print(f"Creating directory {item['Key']}")
+            os.mkdir(item['Key'])
         else:
-            print(f"Downloading file {item["Key"]}")
-            s3_client.download_file(artis_bucket_name, item["Key"], item["Key"])
+            print(f"Downloading file {item['Key']}")
+            s3_client.download_file(artis_bucket_name, item['Key'], item['Key'])
 
 # Rename outputs directory with today's date
 today = date.today()
 print(f"Adding date {today} to outputs directory")
-os.rename("outputs", f"{today}_outputs")
+os.rename("outputs", f"outputs_{today}")
 
 print("Done!")
-
