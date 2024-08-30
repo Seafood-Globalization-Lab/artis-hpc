@@ -5,7 +5,7 @@ import boto3
 batch_client = boto3.client("batch",
                             region_name=os.environ["AWS_REGION"])
 
-hs_versions = ["17"]
+hs_versions = ["12"]
 for hs_version in hs_versions:
     response = batch_client.submit_job(
         jobName = f"artis-HS{hs_version}",
