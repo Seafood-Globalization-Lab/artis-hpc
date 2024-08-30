@@ -5,7 +5,7 @@ This repository contains the instructions to create the ARTIS High Performance C
 1) Setting up a new ARTIS HPC on AWS
     - Likely able to follow instructions top to bottom
 2) Running an Existing ARTIS HPC Setup
-    - Likely able to skip to [Setup Local Python Environment](#setup-local-python-environment) if the previous model run was executed from the same local machine.
+    - Likely able to skip to [Setup Local Python Environment](#setup-local-python-environment) and skip [Setting Up New ARTIS HPC on AWS](#setting-up-new-artis-hpc-on-aws) if the previous model run was executed from the same local machine.
 
 *All commands will be run in the terminal/command line and indicated with a "$" before the command or contained within a code block*
 
