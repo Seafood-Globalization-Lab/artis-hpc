@@ -27,9 +27,11 @@ This repository contains the instructions to create the ARTIS High Performance C
     -   [Status of jobs submitted to AWS batch](#status-of-jobs-submitted-to-aws-batch)
     -   [Troubleshoot failed jobs](#troubleshoot-failed-jobs)
     -   [Check CloudWatch logs for specific job](#check-cloudwatch-logs-for-specific-job)
--   [Combine All ARTIS Model Outputs into Database Ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)
+    -   [Check for all expected outputs in S3 bucket](#check-for-all-expected-outputs-in-s3-bucket)
+-   [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)
 -   [Download Results, Clean Up AWS and Docker Environments](#download-results-clean-up-aws-and-docker-environments)
 -   [Create AWS IAM user](#create-aws-iam-user)
+-   [Docker container `artis-image` details](#docker-container-artis-image-details)
 
 ## Technologies Used 
 
@@ -257,7 +259,7 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 
 **Troubleshooting Tip:** If terraform states that it created all resources however when you log into the AWS console to confirm cannot see them, they have most likely been created as part of another account. Run `terraform destroy -auto-approve` on the command line. Confirmed you have followed the AWS CLI set up instructions with the correct set of keys (AWS access key and AWS secret access key).
 
-*A successful and complete model run will then proceed to the next step [Combine all ARTIS model outputs into database ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)*
+*A successful and complete model run will then proceed to the next step [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)*
 
 ## Running Existing ARTIS HPC Setup 
 
@@ -274,7 +276,7 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 4.  **Run**: $`python3 submit_artis_jobs.py` to submit batch jobs on AWS. 
     - Loops through designated `HS_VERSIONS` to run corresponding shell scripts to source `docker_image_artis_pkg_download.R` and `02-artis-pipeline_[hs version].R`
     
-*A successful and complete model run will then proceed to the next step [Combine all ARTIS model outputs into database ready CSVs](#combine-all-artis-model-outputs-into-database-ready-csvs)*
+*A successful and complete model run will then proceed to the next step [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)*
 
 ## Checks & Troubleshooting 
 
@@ -379,26 +381,27 @@ aws/artis-s3-bucket/
 
 ```
 
-## Combine all ARTIS model outputs into database ready CSVs 
+## Combine ARTIS model outputs into CSVs 
 
 -    **Run** $`python3 submit_combine_tables_job.py`
 
-# Download results, Clean up AWS and Docker environments 
+## Download results, Clean up AWS and Docker environments 
 
-1.  **Run** $`python3 s3_download.py` to download "outputs" folder from AWS, 
-2.  **Run** $`terraform destroy` to destroy all AWS resources and dependencies created
+1.  **Run** $`python3 s3_download.py` to download `artis-s3-bucket` contents to local `artis-hpc/outputs_[RUN YYYY-MM-DD]` directory
+
 3.  **Open** Docker Desktop app,
-    4.  **Delete** all containers created
-    5.  **Delete** all images created
-6.  **Run** $`deactivate` to close python environment, 
+      4.  **Delete** all containers created
+      5. **Optional** to delete ARTIS images - can retain if planing to run the model again
+
+6.  **Run** $`terraform destroy` to destroy all AWS resources and dependencies created
+      - This is important to not be charged money for maintaining idle resources and storing GBs of data in S3 buckets
+7.  **Run** $`deactivate` to close python environment
 
 ## Create AWS IAM User
 
 **FIXIT**: include screenshots for creating an IAM user with the correct admin permissions.
 
-## Directory Structures
-
-### Docker Container `artis-image` 
+## Docker container `artis-image` details
 
 Once the docker image `artis-image` has been uploaded to AWS ECR, the docker container `artis-image` will need to import all R scripts and model inputs from the `artis-s3-bucket` on AWS. Once $`python3 submit_artis_jobs.py` is run, a new job on AWS Batch will run ARTIS on a new instance of the docker container for each HS version specified within each job. Each docker instance will only import the scripts and model inputs for the HS version and years it is running from `artis-s3-bucket` (occurs when `docker_image_artis_pkg_download.R` is sourced in `job_shell_scripts/`).
 
