@@ -23,13 +23,13 @@ This repository contains the instructions to create the ARTIS High Performance C
 -   [Update ARTIS Model Scripts and Model Inputs](#update-artis-model-scripts-and-model-inputs)
 -   [Setting Up New ARTIS HPC on AWS](#setting-up-new-artis-hpc-on-aws)
 -   [Running Existing ARTIS HPC Setup](#running-existing-artis-hpc-setup)
+-   [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)
+-   [Download Results, Clean Up AWS and Docker Environments](#download-results-clean-up-aws-and-docker-environments)
 -   [Checks & Troubleshooting](#checks-troubleshooting)
     -   [Status of jobs submitted to AWS batch](#status-of-jobs-submitted-to-aws-batch)
     -   [Troubleshoot failed jobs](#troubleshoot-failed-jobs)
     -   [Check CloudWatch logs for specific job](#check-cloudwatch-logs-for-specific-job)
     -   [Check for all expected outputs in S3 bucket](#check-for-all-expected-outputs-in-s3-bucket)
--   [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)
--   [Download Results, Clean Up AWS and Docker Environments](#download-results-clean-up-aws-and-docker-environments)
 -   [Create AWS IAM user](#create-aws-iam-user)
 -   [Docker container `artis-image` details](#docker-container-artis-image-details)
 
@@ -278,6 +278,23 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
     
 *A successful and complete model run will then proceed to the next step [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)*
 
+## Combine ARTIS model outputs into CSVs 
+
+-    **Run** $`python3 submit_combine_tables_job.py`
+
+## Download results, Clean up AWS and Docker environments 
+
+1.  **Run** $`python3 s3_download.py` to download `artis-s3-bucket` contents to local `artis-hpc/outputs_[RUN YYYY-MM-DD]` directory
+
+3.  **Open** Docker Desktop app,
+      4.  **Delete** all containers created
+      5. **Optional** to delete ARTIS images - can retain if planing to run the model again
+
+6.  **Run** $`terraform destroy` to destroy all AWS resources and dependencies created
+      - This is important to not be charged money for maintaining idle resources and storing GBs of data in S3 buckets
+7.  **Run** $`deactivate` to close python environment
+
+
 ## Checks & Troubleshooting 
 
 ### Status of jobs submitted to AWS batch:
@@ -318,7 +335,7 @@ python3 initial_setup.py -chip arm64 -aws_access_key $AWS_ACCESS_KEY -aws_secret
 ### Check for all expected outputs in S3 bucket:
 
 1.   Navigate to the `artis-s3-bucket` in AWS S3. 
-2.   Confirm that all expected outputs are present
+2.   Confirm that all expected outputs are present for submitting ARTIS model jobs.
     - The `outputs` folder should contain a `snet/` subfolder that has each HS version specified in the `HS_VERSIONS` variable
     - Each HS version folder should contain the applicable years 
     
@@ -331,7 +348,7 @@ aws/artis-s3-bucket/
     │   ├── HS[VERSION]/
     │   │   ├── [YEAR]/
     │   │   │   ├── [RUN YYYY-MM-DD]_all-country-est_[YEAR]_HS[VERSION].RDS
-    │   │   │   ├── [RUN YYYY-MM-DD]_all-data-prior-to-solve-country_[YEAR]_HS[VERSION].RData (Might be only file for some year folders depending if all countries solved by quadprog)
+    │   │   │   ├── [RUN YYYY-MM-DD]_all-data-prior-to-solve-country_[YEAR]_HS[VERSION].RData # Might be only file for some year folders depending if all countries solved by quadprog
     │   │   │   ├── [RUN YYYY-MM-DD]_analysis-documentation_countries-with-no-solve-qp-solution_[YEAR]_HS[VERSION].txt
     │   │   │   ├── [RUN YYYY-MM-DD]_country-est_[COUNTRY ISO3C]_[YEAR]_HS[VERSION].RDS
     │   │   │   └── ...  
@@ -347,9 +364,9 @@ aws/artis-s3-bucket/
     │   │   │   ├── [RUN YYYY-MM-DD]_analysis-documentation_countries-with-no-solve-qp-solution_[YEAR]_HS[VERSION].txt
     │   │   │   ├── [RUN YYYY-MM-DD]_country-est_[COUNTRY ISO3C]_[YEAR]_HS[VERSION].RDS
     │   │   │   └── ...
-    │   │   └── [YEAR]/
-    │   │       └── ...
-    │   │   └── no_solve_countries.csv (Key file to check)    
+    │   │   ├── [YEAR]/
+    │   │   │   └── ...
+    │   │   └── no_solve_countries.csv # Key file to check   
     │   └── HS[VERSION]/
     │       └── ...
     ├── snet/
@@ -375,27 +392,23 @@ aws/artis-s3-bucket/
     │   │   └── ...
     │   ├── [YEAR]/
     │   │   └── ...
-    │   ├── V1_long_HS17.csv
-    │   └── V2_long_HS17.csv
+    │   ├── V1_long_HS[VERSION].csv
+    │   └── V2_long_HS[VERSION].csv
 
 
 ```
 
-## Combine ARTIS model outputs into CSVs 
+After submitting `submit_combine_tables_job` to AWS batch, the `artis-s3-bucket` should contain the additional following files:
 
--    **Run** $`python3 submit_combine_tables_job.py`
+```sh
+aws/artis-s3-bucket/
+└── artis_outputs/
+    ├── consumption_midpoint_all_hs_all_years.csv 
+    └── snet_midpoint_all_hs_all_years.csv
+    
+# "midpoint"" is estimate type and will change if different estimate type is used
+```
 
-## Download results, Clean up AWS and Docker environments 
-
-1.  **Run** $`python3 s3_download.py` to download `artis-s3-bucket` contents to local `artis-hpc/outputs_[RUN YYYY-MM-DD]` directory
-
-3.  **Open** Docker Desktop app,
-      4.  **Delete** all containers created
-      5. **Optional** to delete ARTIS images - can retain if planing to run the model again
-
-6.  **Run** $`terraform destroy` to destroy all AWS resources and dependencies created
-      - This is important to not be charged money for maintaining idle resources and storing GBs of data in S3 buckets
-7.  **Run** $`deactivate` to close python environment
 
 ## Create AWS IAM User
 
