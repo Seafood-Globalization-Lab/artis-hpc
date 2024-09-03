@@ -421,6 +421,51 @@ aws/artis-s3-bucket/
 
 **FIXIT**: include screenshots for creating an IAM user with the correct admin permissions.
 
+1. Create an AWS root user
+2. Create an IAM user group
+
+![](./images/aws_iam_user_group_1.png)
+
+![](./images/aws_iam_user_group_2.png)
+
+![](./images/aws_iam_user_group_3.png)
+
+![](./images/aws_iam_user_group_4.png)
+
+3. Create an IAM user
+
+![](./images/aws_iam_user_1.png)
+
+![](./images/aws_iam_user_2.png)
+
+![](./images/aws_iam_user_3.png)
+
+![](./images/aws_iam_user_4.png)
+
+![](./images/aws_iam_user_5.png)
+
+![](./images/aws_iam_user_6.png)
+
+![](./images/aws_iam_user_7.png)
+
+4. Sign in as IAM user
+
+<p align="center">
+  <img src="./images/aws_iam_login.png" alt="drawing" width="50%"/>
+</p>
+
+
+5. Get IAM user access key
+
+![](./images/aws_iam_access_key_1.png)
+
+![](./images/aws_iam_access_key_2.png)
+
+![](./images/aws_iam_access_key_3.png)
+
+Save the access key and secret key in a secure location (*i.e.* password manager)
+
+
 ## Docker container `artis-image` details
 
 Once the docker image `artis-image` has been uploaded to AWS ECR, the docker container `artis-image` will need to import all R scripts and model inputs from the `artis-s3-bucket` on AWS. Once $`python3 submit_artis_jobs.py` is run, a new job on AWS Batch will run ARTIS on a new instance of the docker container for each HS version specified within each job. Each docker instance will only import the scripts and model inputs for the HS version and years it is running from `artis-s3-bucket` (occurs when `docker_image_artis_pkg_download.R` is sourced in `job_shell_scripts/`).
