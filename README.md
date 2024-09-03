@@ -402,9 +402,16 @@ After submitting `submit_combine_tables_job` to AWS batch, the `artis-s3-bucket`
 
 ```sh
 aws/artis-s3-bucket/
-└── artis_outputs/
-    ├── consumption_midpoint_all_hs_all_years.csv 
-    └── snet_midpoint_all_hs_all_years.csv
+└── outputs/
+    ├── cvxopt_snet/
+    │   └── ...
+    ├── quadprog_snet/
+    │   └── ...
+    ├── snet/
+    │   └── ...
+    └── artis_outputs/
+        ├── consumption_midpoint_all_hs_all_years.csv 
+        └── snet_midpoint_all_hs_all_years.csv
     
 # "midpoint"" is estimate type and will change if different estimate type is used
 ```
