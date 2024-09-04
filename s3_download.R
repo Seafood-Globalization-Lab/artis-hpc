@@ -28,6 +28,7 @@ df_files <- get_bucket_df(
 # Filter out file paths to folders
 df_files <- df_files[str_detect(df_files, pattern = "\\.")]
 
+start.time <- Sys.time()
 # Loop through to download each file
 for (i in 1:length(df_files)) {
   print(paste(i, "of", length(df_files), df_files[i], sep = " "))
@@ -38,5 +39,8 @@ for (i in 1:length(df_files)) {
     file = file.path(outdir, df_files[i])
   )
 }
-
+end.time <- Sys.time()
 print("Done!")
+
+run.time <- end.time-start.time
+print(run.time)
