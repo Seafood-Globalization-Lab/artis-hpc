@@ -38,7 +38,6 @@ docker_image_files/
 # R files
 .Rhistory
 .Rproj.user
-artis-hpc.Rproj
 
 # rendered README
 README.html
