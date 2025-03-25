@@ -130,4 +130,7 @@ print(f"Pushing local docker image artis-image to AWS ECR: {ecr_repo_name}")
 push_log = docker_client.images.push(ecr_repo_name, tag='latest')
 
 print(push_log)
-print("Successfully uploaded docker image to ECR")
+if "error" in push_log.lower():
+    print("Failed to upload docker image to ECR.")
+else:
+    print("Successfully uploaded docker image to ECR.")
