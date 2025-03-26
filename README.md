@@ -100,6 +100,7 @@ To create an AWS IAM user follow the instructions here: [Create AWS IAM user](#c
     -   Python packages
         -   docker
         -   boto3
+-   [Docker Desktop](#)
 
 ### Homebrew Installation
 
@@ -130,6 +131,15 @@ export PATH=/opt/homebrew/bin:$PATH
 8.  **Type** `wq`
 9.  **Press** `Enter`
 10. Source new config file, **run** $`source ~/.zshrc`
+
+### Docker Desktop Installation
+
+The Docker desktop app contains Docker daemon which is required to run in the background to build docker images. Docker CLI (command line interface) is a client, CLI commands call on this service to do the work. 
+
+1. [Install here](https://docs.docker.com/desktop/setup/install/mac-install/)
+2. Complete installation by opening `Docker.dmg` on your machine.
+
+
 
 ### AWS CLI Installation
 
@@ -164,8 +174,8 @@ If this has been unsuccessful you might need to install xcode command line tools
 
 ### Python Installation
 
-- install python3 on MacOS: **Run** $`brew install python3`
-- check python3 has been installed: **Run** $`python3 --version`
+- install python 3.11 on MacOS: **Run** $`brew install python@3.11`
+- check python 3.11 has been installed: **Run** $`python3 --version`
 - install pip (package installer for python): **Run** $`sudo easy_install pip`
 
 ## Setup Local Python Environment
@@ -173,16 +183,18 @@ If this has been unsuccessful you might need to install xcode command line tools
 To prepare for running the ARTIS model on AWS we need to create a virtual environment to run the python scripts in. **Note**: Please make sure that your terminal is currently in the correct working directory for this project (should end in `.../.../artis-hpc`)
 
 1.  **Run** $`pwd` to confirm you are in the correct working directory
-1.  **Run** $`python3 -m venv venv` to create a virtual environment
+2.  **Run** $`brew info python@3.11` to check the location of the python install
+1.  **Run** $`[PATH-to-python@3.11-instalation] -m venv venv` to create a virtual environment
+  - Example **Run** $`/opt/homebrew/bin/python3.11 -m venv venv` to create virtual environment with specific instalation of python
 2.  **Run** $`source venv/bin/activate` to open virtual environment
-3.  **Run** $`pip3 install -r requirements.txt` to install all required python modules
+3.  **Run** $`pip3.11 install -r requirements.txt` to install all required python modules
 4.  **Run** $`pip3 list` to check that all python modules have been downloaded. Check that all modules in the `requirements.txt` file are included.
 
 If an error occurs please follow these instructions:
 
 5.  Upgrade your version of pip,  **Run** $`pip install --upgrade pip`
-6.  Install all required python modules, **Run** $`pip3 install -r requirements.txt`
-7.  If errors still occur install each python package in the `requirements.txt` file individually, **Run** $`pip3 install [PACKAGE NAME]` ie $`pip3 install urllib3`.
+6.  Install all required python modules, **Run** $`pip3.11 install -r requirements.txt`
+7.  If errors still occur install each python package in the `requirements.txt` file individually, **Run** $`pip3.11 install [PACKAGE NAME]` ie $`pip3.11 install scipy==1.13.0`.
 
 ## AWS CLI Setup
 
