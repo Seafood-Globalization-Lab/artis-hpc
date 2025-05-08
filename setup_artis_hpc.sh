@@ -123,23 +123,6 @@ echo "Using Python at $PYTHON_PATH"
 $PYTHON_PATH -m venv venv
 echo "Virtual environment created at ./venv"
 
-source venv/bin/activate
-echo "Virtual environment activated"
-
-REQ_FILE="${ARTIS_HPC_DIR}/requirements.txt"
-if pip3.11 install -r "$REQ_FILE"; then
-  echo "Dependencies installed."
-else
-  echo "Initial install failed. Trying pip upgrade..."
-  pip3.11 install --upgrade pip
-  pip3.11 install -r "$REQ_FILE" || {
-    echo "Manual install fallback..."
-    while IFS= read -r package; do
-      pip3.11 install "$package"
-    done < "$REQ_FILE"
-  }
-fi
-
 # ---------------------------
 # AWS CLI Setup from ENV vars
 # ---------------------------
@@ -163,4 +146,15 @@ echo "AWS CLI configured."
 # ---------------------------
 # Done
 # ---------------------------
-echo "ARTIS HPC setup complete. You can now run initial_setup.py or submit_artis_jobs.py"
+# ---------------------------
+# Done
+# ---------------------------
+echo "ARTIS HPC setup complete."
+
+echo
+echo "Next steps:"
+echo "  1. Activate the Python virtual environment:"
+echo "     source venv/bin/activate"
+echo
+echo "Reminder: activation must be run in the same terminal session to use installed Python packages."
+
