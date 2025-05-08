@@ -123,6 +123,20 @@ echo "Using Python at $PYTHON_PATH"
 $PYTHON_PATH -m venv venv
 echo "Virtual environment created at ./venv"
 
+REQ_FILE="${ARTIS_HPC_DIR}/requirements.txt"
+if pip3.11 install -r "$REQ_FILE"; then
+  echo "Dependencies installed."
+else
+  echo "Initial install failed. Trying pip upgrade..."
+  pip3.11 install --upgrade pip
+  pip3.11 install -r "$REQ_FILE" || {
+    echo "Manual install fallback..."
+    while IFS= read -r package; do
+      pip3.11 install "$package"
+    done < "$REQ_FILE"
+  }
+fi
+
 # ---------------------------
 # AWS CLI Setup from ENV vars
 # ---------------------------
