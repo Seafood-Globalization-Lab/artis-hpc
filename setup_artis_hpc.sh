@@ -18,8 +18,8 @@ ARTIS_MODEL_CODE_DIR="/Users/theamarks/Documents/git-projects/artis-model"
 # Path to artis-hpc repo root
 ARTIS_HPC_DIR="/Users/theamarks/Documents/git-projects/artis-hpc"
 
-# Set HS_VERSIONS (comma-separated, no spaces)
-HS_VERSIONS="96"
+# Set HS_VERSIONS as environmental variable (comma-separated, no spaces, i.e. "02,07,12,17,96" or "96")
+export HS_VERSIONS="02,07,12,17,96"
 
 # ---------------------------
 # Directory Setup & Validation
@@ -69,12 +69,6 @@ if [ -f "${ARTIS_MODEL_CODE_DIR}/.Renviron" ]; then
 else
   echo "No .Renviron file found. Skipping..."
 fi
-
-# ---------------------------
-# Set HS_VERSIONS for later scripts
-# ---------------------------
-echo "Setting HS_VERSIONS..."
-export HS_VERSIONS="$HS_VERSIONS"
 
 # ---------------------------
 # Run create_pipeline_versions.sh
@@ -157,9 +151,6 @@ aws configure set region "$AWS_REGION"
 
 echo "AWS CLI configured."
 
-# ---------------------------
-# Done
-# ---------------------------
 # ---------------------------
 # Done
 # ---------------------------
