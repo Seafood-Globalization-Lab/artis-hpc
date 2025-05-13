@@ -11,7 +11,6 @@ IFS=',' read -r -a hs_versions <<< "$HS_VERSIONS"
 
 # Paths to the original scripts
 pipeline_script_path="data_s3_upload/ARTIS_model_code/02-artis-pipeline.R"
-aws_setup_script_path="data_s3_upload/ARTIS_model_code/00-aws-hpc-setup.R"
 
 # Define function to create ARTIS scripts for each HS version specified
 create_modified_script() {
@@ -42,11 +41,6 @@ create_modified_script() {
     # Modify the relevant line to set hs_version_run
     modified_script=$(echo "$original_script" | sed "${line_number}s/.*/hs_version_run <- \"$hs_version\"/")
 
-    # Replace the source line if required
-    if [ "$replace_source" = true ]; then
-      modified_script=$(echo "$modified_script" | sed "13s|source(\"00-aws-hpc-setup.R\")|source(\"00-aws-hpc-setup_hs${hs_version}.R\")|")
-    fi
-
     # Define the new file name
     new_file_name="data_s3_upload/ARTIS_model_code/${script_name}_hs${hs_version}.R"
 
@@ -62,9 +56,6 @@ create_modified_script() {
 # Create modified versions of 02-artis-pipeline.R and update 
 # 00-aws-setup script sourced on line 13 to now call hs_version specific script
 create_modified_script "$pipeline_script_path" "02-artis-pipeline" true
-
-# Create modified versions of 00-aws-hpc-setup.R 
-create_modified_script "$aws_setup_script_path" "00-aws-hpc-setup" false
 
 # Print a final message to confirm the process is done
 echo "All HS version scripts have been created successfully!"
