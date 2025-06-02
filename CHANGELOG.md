@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.1.0] – 2025-06-02
 
+This `artis-hpc` version was writen with ARTIS model version https://github.com/Seafood-Globalization-Lab/artis-model/releases/tag/v1.1.0
+
 ### Added
 - **Restart‐at‐get_snet script** (`02-artis-pipeline-restart-snet-hs[hs-yr].R`):  
   - Creates option for model to run in chunks, useful if failures occur during the `get_snet` process.  
@@ -27,7 +29,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - For each HS version, submits an AWS Batch job that:  
     1. Uses the existing Docker image in ECR.  
     2. Inside the container, sources the baked‐in helper to pull all `ARTIS_model_code/` from S3.  
-    3. Sources the HS‐specific restart script (e.g. `02-artis-pipeline-restart-snet-hs96.R`) to resume `get_snet()`.  
+    3. Sources the HS‐specific restart script (e.g. `02-artis-pipeline-restart-snet-hs96.R`) to resume `get_snet()`.
+
+- **Setup helper script** (`setup_artis_hpc.sh`):  
+  - Automates copying ARTIS model R scripts (`00-aws-hpc-setup.R`, `02-artis-pipeline.R`) and R package metadata into `data_s3_upload/ARTIS_model_code/`.  
+  - Syncs model input CSVs (excluding `*_including_value.csv`) into `data_s3_upload/model_inputs/`.  
+  - Runs `create_pipeline_versions.sh` to generate HS‐specific R scripts under `ARTIS_model_code/`.  
+  - Creates or recreates the Python virtual environment (`venv`) in the repository root, installing dependencies from `requirements.txt`, with fallback logic in case of install failures.  
+  - Configures the AWS CLI using `AWS_ACCESS_KEY`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION` environment variables.
 
 ### Changed
 - **Directory‐creation logic** in `02-artis-pipeline-restart-snet-hs[hs-yr].R`:  
@@ -56,3 +65,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     "_HS", HS_year_rep,        # “_HS<ver>”
     "\\.RDS$"
   )
+  ```
