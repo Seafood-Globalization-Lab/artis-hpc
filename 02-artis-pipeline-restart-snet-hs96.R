@@ -78,6 +78,41 @@ for (d in c(outdir_quadprog, outdir_cvxopt)) {
   }
 }
 
+
+# import s3 country solution data -----------------------------------------
+
+for (solver_dir in c(outdir_quadprog, outdir_cvxopt)) {
+  for (yr in years) {
+    prefix <- file.path(solver_dir, hs_dir, yr)
+    objs   <- aws.s3::get_bucket_df(bucket = artis_bucket,
+                                    region = artis_bucket_region,
+                                    prefix = prefix, max = Inf)
+    
+    keys <- objs$Key[grepl(
+      paste0(".*_all-country-est_.*", yr, "_HS", hs_version_run, "\\.RDS$"),
+      objs$Key
+    )]
+    
+    if (length(keys) == 0) {
+      warning("No all-country-est file under ", prefix)
+      next
+    }
+    if (length(keys) > 1) {
+      stop("Expected exactly one all-country-est under ", prefix,
+           " but found: ", paste(basename(keys), collapse = ", "))
+    }
+    
+    message("Downloading from s3: ", keys)
+    aws.s3::save_object(
+      object = keys,
+      bucket = artis_bucket,
+      region = artis_bucket_region,
+      file   = keys
+    )
+  }
+}
+
+
 # restart pipeline at get_snet --------------------------------------------
 
 # Takes all solutions of country mass balance problems and calculates ARTIS database
