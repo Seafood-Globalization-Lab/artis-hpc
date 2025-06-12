@@ -3,10 +3,15 @@
 This repository automates and orchestrates running the ARTIS model on AWS Batch. It supports two primary workflows:
 
 1. **Full (brand-new) setup**  
-   Provision AWS infrastructure, build and push Docker images, upload model inputs, and submit Batch jobs from scratch.
+   - provision AWS infrastructure
+   - build and push Docker images
+   - upload model inputs
+   - submit Batch jobs
 
 2. **Incremental or restart runs**  
-   Re-use existing AWS resources and Docker image, upload updated model inputs, and submit new Batch jobs (including a “resume at get_snet” option if needed).
+   - re-use existing AWS resources and Docker image
+   - upload updated model inputs
+   - submit Batch jobs (including a “restart at get_snet” option if needed).
 
 **Primary Audience**  
 A technically proficient data scientist (macOS) who maintains, develops, and runs the ARTIS pipeline on AWS. Detailed documentation is provided so future maintainers can pick up this project even if they start from scratch.
@@ -32,23 +37,80 @@ A technically proficient data scientist (macOS) who maintains, develops, and run
 
 ## Overview
 
-ARTIS HPC uses AWS Batch, S3, Terraform, Docker, Python, and R to run the ARTIS seafood‐trade model at scale.  
+ARTIS HPC uses AWS Batch, S3, Terraform, Docker, Python, and R to run the ARTIS model across all HS versions and year combinations.  
 
-- The **ARTIS R package** (in [Seafood-Globalization-Lab/artis-model](https://github.com/Seafood-Globalization-Lab/artis-model)) contains all core model functions.  
-- This **artis-hpc** repo glues everything together:  
-  1. Provision EC2/VPC/Batch via Terraform.  
-  2. Build a Docker image (`artis-image`) containing R, Python, and necessary R/py packages.  
-  3. Push code and inputs to S3.  
-  4. Submit AWS Batch jobs for each HS version.  
-  5. (Optional) Resume a failed `get_snet()` step without re-solving the mass-balance (new “restart” tooling).
+- The **ARTIS R package** (in [Seafood-Globalization-Lab/artis-model](https://github.com/Seafood-Globalization-Lab/artis-model)) contains all model functions and pipeline scripts.  
+- This **artis-hpc** repo sets up the compute tools, environments and resources:  
+  - Provision EC2/VPC/Batch via Terraform.  
+  - Build a Docker image (`artis-image`) containing software installations and necessary R/py packages.  
+  - Push Docker image to ECR. 
+  - Push code and data inputs to S3.  
+  - Submit AWS Batch jobs for each HS version.  
+  - Download results to local machine repo directory
+  - (Optional) Resume a failed `get_snet()` step without re-solving the mass-balance (new “restart” tooling).
 
-## Version Compatibility
+## ARTIS Version Compatibility
 
 - **Required ARTIS Model Version:** [`Seafood-Globalization-Lab/artis-model@v1.1.0`](https://github.com/Seafood-Globalization-Lab/artis-model/releases/tag/v1.1.0)
 
-## Quick-Start
+## Prerequisites
 
-If your AWS infrastructure already exists (all Terraform resources are live) and you have the Docker image (`artis-image`) in ECR, you can run a model update in four steps:
+Before submitting any ARTIS jobs, complete the following setup:
+
+4. **Required Tools (macOS or Linux)**  [Intall instructions](#installations) 
+   - **Docker Desktop** 
+   - **Terraform CLI**  
+   - **AWS CLI** (v2)
+   - **Python 3.11+** 
+   - **R** (for ARTIS‐model code; not required to run the setup script but used by AWS Batch containers).
+
+2. **Local Repositories**  
+   - Clone (or have) a local copy of `Seafood-Globalization-Lab/artis-hpc` 
+      ```zsh
+      git clone https://github.com/Seafood-Globalization-Lab/artis-hpc.git
+      ```
+   
+   - Clone (or have) a local copy of `Seafood-Globalization-Lab/artis-model` so that the `artis-hpc/setup_artis_hpc.sh` script can copy relevant model code, scripts, and input data into your local `artis-hpc` repo.
+      ```zsh
+      git clone https://github.com/Seafood-Globalization-Lab/artis-model.git
+      ```
+
+1. **AWS Credentials & IAM Access**  
+
+   > [!NOTE]  
+   > Create IAM resources as needed (One‐time) with these instructions [docs/iam-setup.md](docs/iam-setup.md)
+   - Ensure you have an IAM user in an Admin group with `AdministratorAccess`. 
+  
+
+## Run ARTIS on AWS Instructions
+
+ - **Set your AWS credentials** as environment variables in your shell (replace with your values):  
+     ```zsh
+     export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]
+     export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]
+     export AWS_REGION=us-east-1
+     ```
+
+     ```
+     #check value with 
+     echo $AWS_ACCESS_KEY
+     ```
+- **Set AWS configuration files**  (`~/.aws/credentials` and `~/.aws/config`)
+     ```zsh
+     aws configure set aws_access_key_id $AWS_ACCESS_KEY
+     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+     aws configure set region $AWS_REGION
+     ```
+
+     ```
+     #check value with 
+     aws configure get aws_access_key_id
+     ```
+- **Set HS_VERSIONS** to run:
+     ```zsh
+     export HS_VERSIONS="02,07,12,17,96"
+     ```
+   - This must be set before running the setup script (it is required in  `create_pipeline_versions.sh` and `submit_artis_jobs.py`).
 
 1. **Activate Python virtual environment**  
    ```zsh
@@ -74,41 +136,6 @@ If your AWS infrastructure already exists (all Terraform resources are live) and
 
 That’s it—no need to run the full provisioning steps again.
 
-## Prerequisites
-
-Before submitting any ARTIS jobs, complete the following setup:
-
-1. **AWS Credentials & IAM Access**  
-   - Ensure you have an IAM user in an Admin group with `AdministratorAccess`.  
-   - Export these environment variables in your shell (replace with your values):  
-     ```zsh
-     export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]
-     export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]
-     export AWS_REGION=us-east-1
-     ```
-   - (One‐time) Create IAM resources as needed—see [docs/iam-setup.md](docs/iam-setup.md).
-
-2. **Local Repositories**  
-   - Clone (or have) a local copy of `Seafood-Globalization-Lab/artis-model` so the setup script can copy R scripts and package files.  
-      ```zsh
-   git clone https://github.com/Seafood-Globalization-Lab/artis-hpc.git
-   cd artis-hpc
-   ```
-
-3. **Set HS_VERSIONS**  
-   - Define which HS versions you’ll run, for example:  
-     ```zsh
-     export HS_VERSIONS="02,07,12,17,96"
-     ```
-   - This must be set before running the setup script (it drives `create_pipeline_versions.sh`).
-
-4. **Required Tools (macOS or Linux)**  
-   - **Git** (to clone repos).  
-   - **Docker Desktop** (latest).  
-   - **Terraform CLI** (v1.x) in your `PATH`.  
-   - **AWS CLI** (v2) in your `PATH`.  
-   - **Python 3.11+** installed.  
-   - **R** (for ARTIS‐model code; not required to run the setup script but used by AWS Batch containers).
 
 ---
 
@@ -221,6 +248,93 @@ Before submitting any ARTIS jobs, complete the following setup:
      deactivate
      ```
    - Outputs appear under `outputs_[RUN_DATE]/…`.  
+
+## Installations
+
+-   [Homebrew](#homebrew-installation)
+-   [AWS CLI](#aws-cli-installation)
+-   [Terraform CLI](#terraform-cli-installation)
+-   [Python Installation](#python-installation)
+    -   Python packages
+        -   docker
+        -   boto3
+-   [Docker Desktop](#)
+
+### Homebrew Installation
+
+**Note**: If you already have Homebrew installed please still confirm by following step 3 below. Both instructions should run without an error message.
+
+1.  Install homebrew - **run**$
+
+``` sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+2.  **Close** existing terminal window where installation command was run and **open** a new terminal window
+3.  Confirm homebrew has been installed -
+    - **Run** $`brew --version`. No error message should appear.
+
+*If after homebrew installation you get a message stating* `brew command not found`:
+
+4.  Edit zsh config file, **run** $`vim ~/.zshrc`
+
+5.  **Type** `i` to enter edit mode
+6.  **Copy & paste** this line into the file you opened:
+
+``` sh
+export PATH=/opt/homebrew/bin:$PATH
+```
+
+7.  **Press** `Shift` and :
+8.  **Type** `wq`
+9.  **Press** `Enter`
+10. Source new config file, **run** $`source ~/.zshrc`
+
+### Docker Desktop Installation
+
+The Docker desktop app contains Docker daemon which is required to run in the background to build docker images. Docker CLI (command line interface) is a client, CLI commands call on this service to do the work. 
+
+1. [Install here](https://docs.docker.com/desktop/setup/install/mac-install/)
+2. Complete installation by opening `Docker.dmg` on your machine.
+
+
+
+### AWS CLI Installation
+
+[Following instructions from AWS](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+**Note**: If you already have AWS CLI installed please still confirm by following step 3 below. Both instructions should run without an error message.
+
+The following instructions are for MacOS users:
+
+1.  **Run** $`curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"`
+2.  **Run** $`sudo installer -pkg AWSCLIV2.pkg -target /`
+3.  Confirm AWS CLI has been installed:
+    1.  **Run** $`which aws`
+    2.  **Run** $`aws --version`
+
+### Terraform CLI Installation
+
+**Note**: If you already have homebrew installed please confirm by **running** $`brew --version`, no error message should occur.
+
+To install terraform on MacOS we will be using homebrew. If you do not have homebrew installed on your computer please follow the installation instructions [here](https://brew.sh/), before continuing.
+
+Based on Terraform CLI installation instructions provided [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
+
+1.  **Run** $`brew tap hashicorp/tap`
+2.  **Run** $`brew install hashicorp/tap/terraform`
+3.  **Run** $`brew update`
+4.  **Run** $`brew upgrade hashicorp/tap/terraform`
+
+If this has been unsuccessful you might need to install xcode command line tools, try:
+
+5.  Run terminal command: `sudo xcode-select --install`
+
+### Python Installation
+
+- install python 3.11 on MacOS: **Run** $`brew install python@3.11`
+- check python 3.11 has been installed: **Run** $`python3 --version`
+- install pip (package installer for python): **Run** $`sudo easy_install pip`
 
 
 ## S3 Bucket & Output Structure
