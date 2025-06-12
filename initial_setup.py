@@ -175,8 +175,8 @@ try:
         os.system(f"python3 docker_image_create_and_upload.py -di {existing_image}")
 
     # Runing script to submit jobs to AWS ARTIS HPC
-    print("Submitting Jobs to AWS ARTIS HPC")
-    os.system("python3 submit_artis_jobs.py")
+    #print("Submitting Jobs to AWS ARTIS HPC")
+    #os.system("python3 submit_artis_jobs.py")
 
     print("Done!")
 except:
