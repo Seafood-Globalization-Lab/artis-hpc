@@ -12,6 +12,8 @@ install.packages('slam', dependencies = TRUE) # ok
 install.packages('doParallel', dependencies = TRUE) # ok
 install.packages('countrycode', dependencies = TRUE) # ok
 install.packages('aws.s3', dependencies = TRUE) # ok
+install.packages('qs2', dependencies = TRUE) # ok
+install.packages('glue', dependencies = TRUE) # ok
 setwd('/usr/src/ARTIS')
 
 
