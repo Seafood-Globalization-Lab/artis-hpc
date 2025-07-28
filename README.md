@@ -229,25 +229,71 @@ That’s it—no need to run the full provisioning steps again.
    export HS_VERSIONS="96"
    ./create_pipeline_versions.sh
    ```
+## Restarting ARTIS S-net on AWS
 
-3. **Sync changes to S3**  
-   Ensure `data_s3_upload/ARTIS_model_code/` is updated accordingly. Currently requires manual upload on web interface to prevent entire upload to s3. This saves time. 
+Follow these steps to resume only the S-net stage of the ARTIS pipeline on AWS Batch.
 
-4. **Restart at `get_snet()`**  
-   ```zsh
-   python3 submit_restart_artis_snet_jobs.py
-   ```
-   - Uses the HS-specific `02-artis-pipeline-restart-snet-hsXX.R` scripts to skip `get_country_solutions()` and resume `get_snet()`.
+### 1. Prerequisites
 
-6. **Monitor and retrieve results**  
-   - Check AWS Batch and CloudWatch logs for job status.  
-   - After completion:
-     ```zsh
-     python3 s3_download.py
-     terraform destroy   # if tearing down
-     deactivate
-     ```
-   - Outputs appear under `outputs_[RUN_DATE]/…`.  
+- You’ve already provisioned AWS infra & pushed the Docker image at least once.  
+- You have a working Python 3.11+ venv with dependencies installed.  
+- Your local `artis-hpc` repo is up-to-date and `setup_artis_hpc.sh` has been run at least once to stage model code.
+
+### 2. Set AWS credentials & region
+
+Export only your AWS keys and region—the bucket & ECR repo names are hard-coded in the scripts:
+
+```bash
+export AWS_ACCESS_KEY=AKIA…              # your IAM access key
+export AWS_SECRET_ACCESS_KEY=…           # your IAM secret key
+export AWS_REGION=us-east-1              # AWS region
+```
+
+### 3. (Re)generate helper scripts & stage model code
+
+If you’ve updated the ARTIS model code or R pipelines since your last setup, rerun:
+
+```bash
+chmod +x setup_artis_hpc.sh
+./setup_artis_hpc.sh
+```
+
+This populates `data_s3_upload/ARTIS_model_code/` and regenerates any HS-specific R scripts.
+
+### 4. Bootstrap infra, sync inputs & push Docker image
+
+Run the restart‐setup script. It will:
+
+1. Copy the correct Dockerfile  
+2. Template your bucket/ECR names into Terraform & upload scripts  
+3. `terraform apply` (no-op if infra already exists)  
+4. Upload ARTIS code & inputs to S3  
+5. Build (or reuse) and push the Docker image to ECR  
+
+```bash
+python3 initial_setup_restart_snet.py \
+  --chip arm64 \
+  --aws_access_key        "$AWS_ACCESS_KEY" \
+  --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" \
+  --s3 artis-s3-bucket \
+  --ecr artis-image
+```
+
+> Omit `--docker_image` if you want a fresh build → push.  
+> To reuse an existing local image, add `-di <your-image:tag>`.
+
+### 5. Submit the S-net restart jobs
+
+With infra, code, and image in place, fire off the restart jobs:
+
+```bash
+python3 submit_restart_artis_snet_jobs.py
+```
+
+This reads your `02-artis-pipeline-restart-snet-hsXX.R` scripts and submits one Batch job per HS version.
+
+Your ARTIS S-net restart run is now underway!  
+
 
 ## Installations
 
