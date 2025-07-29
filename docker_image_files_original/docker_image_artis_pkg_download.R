@@ -26,7 +26,8 @@ if (dir.exists("R")) { unlink("R") }
 artis_r_pkg_files <- get_bucket_df(
   bucket = artis_bucket,
   region = artis_bucket_region,
-  prefix = artis_r_package_dir
+  prefix = artis_r_package_dir,
+  fetch_owner = FALSE # needed with 
 ) %>%
   pull(Key) %>%
   unique()
