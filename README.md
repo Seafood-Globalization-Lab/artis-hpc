@@ -244,8 +244,8 @@ Follow these steps to resume only the S-net stage of the ARTIS pipeline on AWS B
 Export only your AWS keys and region—the bucket & ECR repo names are hard-coded in the scripts:
 
 ```bash
-export AWS_ACCESS_KEY=AKIA…              # your IAM access key
-export AWS_SECRET_ACCESS_KEY=…           # your IAM secret key
+export AWS_ACCESS_KEY=[YOUR_IAM_ACCESS_KEY]  
+export AWS_SECRET_ACCESS_KEY=[YOUR_IAM_SECRET_ACCESS_KEY]               
 export AWS_REGION=us-east-1              # AWS region
 ```
 
