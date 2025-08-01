@@ -22,15 +22,21 @@ artis_r_package_dir <- "ARTIS_model_code"
 # If R package directory exists - delete it
 if (dir.exists("R")) { unlink("R") }
 
-# Download all ARTIS R package files from S3 bucket
-artis_r_pkg_files <- get_bucket_df(
+
+# Download all ARTIS R package files from S3 bucket --------------------
+
+# List objects (this returns a list of lists; each has x$Key, x$LastModified, etc.)
+bucket_objs <- get_bucket(
   bucket = artis_bucket,
   region = artis_bucket_region,
-  prefix = artis_r_package_dir,
-  fetch_owner = FALSE # needed with 
-) %>%
-  pull(Key) %>%
-  unique()
+  prefix = artis_r_package_dir
+)
+# Extract the Key element from each object
+artis_r_pkg_files <- vapply(
+  bucket_objs,
+  FUN       = function(x) x[["Key"]],
+  FUN.VALUE = character(1)
+) |> unique()
 
 # Create folder for ARTIS R package
 local_pkg_dir <- "R"

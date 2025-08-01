@@ -83,14 +83,25 @@ for (d in c(outdir_quadprog, outdir_cvxopt)) {
 for (solver_dir in c(outdir_quadprog, outdir_cvxopt)) {
   for (yr in years) {
     prefix <- file.path(solver_dir, hs_dir, yr)
-    objs   <- aws.s3::get_bucket_df(bucket = artis_bucket,
-                                    region = artis_bucket_region,
-                                    prefix = prefix, max = Inf)
     
-    keys <- objs$Key[grepl(
-      paste0(".*_all-country-est_.*", yr, "_HS", hs_version_run, "\\.RDS$"),
-      objs$Key
-    )]
+    # list raw objects under this prefix (no data.frame coercion)
+    raw_objs <- get_bucket(
+      bucket = artis_bucket,
+      region = artis_bucket_region,
+      prefix = prefix,
+      max    = Inf
+    )
+    
+    # pull out the Key for each object
+    all_keys <- vapply(
+      raw_objs,
+      function(obj) obj[["Key"]],
+      FUN.VALUE = character(1)
+    )
+
+    # filter to the one RDS file we expect
+    pattern <- paste0(".*_all-country-est_.*", yr, "_HS", hs_version_run, "\\.RDS$")
+    keys <- all_keys[grepl(pattern, all_keys)]
     
     if (length(keys) == 0) {
       warning("No all-country-est file under ", prefix)
@@ -101,8 +112,9 @@ for (solver_dir in c(outdir_quadprog, outdir_cvxopt)) {
            " but found: ", paste(basename(keys), collapse = ", "))
     }
     
+    # 4) download the single matching file
     message("Downloading from s3: ", keys)
-    aws.s3::save_object(
+    save_object(
       object = keys,
       bucket = artis_bucket,
       region = artis_bucket_region,
