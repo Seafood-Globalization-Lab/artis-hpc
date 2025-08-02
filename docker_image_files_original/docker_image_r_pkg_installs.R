@@ -14,6 +14,7 @@ install.packages('countrycode', dependencies = TRUE) # ok
 install.packages('aws.s3', dependencies = TRUE) # ok
 install.packages('qs2', dependencies = TRUE) # ok
 install.packages('glue', dependencies = TRUE) # ok
+install.packages('duckdb', dependencies = TRUE)
 setwd('/usr/src/ARTIS')
 
 
