@@ -1,299 +1,408 @@
 # ARTIS HPC
 
-This repository automates and orchestrates running the ARTIS model on AWS Batch. It supports two primary workflows:
+This repository automates and orchestrates running the ARTIS model pipeline [`artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) on AWS Batch. It supports two primary workflows:
 
 1. **Full (brand-new) setup**  
    - provision AWS infrastructure
-   - build and push Docker images
-   - upload model inputs
-   - submit Batch jobs
+   - build and push Docker image to AWS ECR
+   - upload model inputs and code to AWS S3
+   - submit jobs (by HS version) to AWS Batch
 
-2. **Incremental or restart runs**  
-   - re-use existing AWS resources and Docker image
-   - upload updated model inputs
-   - submit Batch jobs (including a “restart at get_snet” option if needed).
+2. **Restart model after country solutions**  
+   - Option to re-use existing AWS resources and Docker image
+   - Option to skip upload updated model inputs
+   - Submit Batch jobs to start at `get_snet()` using modified `02-artis-pipeline-restart-snet-hs[yy].R`
 
 **Primary Audience**  
-A technically proficient data scientist (macOS) who maintains, develops, and runs the ARTIS pipeline on AWS. Detailed documentation is provided so future maintainers can pick up this project even if they start from scratch.
+A technically proficient person (running macOS) who maintains, develops, and runs the ARTIS mdoel. 
 
----
+**What This Repo Does Not Do:**
+
+- It does not run other ARTIS model scripts for raw data input (`01-clean-model-inputs.R`, `03-combine-tables.R`, or `04-create-metadata.R`).
+- This is not the place to make changes to the ARTIS model code. 
+- This is not the place to find ARTIS model version releases or DOIs. 
+- This is probably not helpful or important for people interested in the data. 
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Version Compatibility](#version-compatibility)
-- [Technologies Used](#technologies-used)
-- [Assumptions](#assumptions)
+- [`artis-model` Version Compatibility](#artis-model-version-compatibility)
+- [Prerequisites](#prerequisites)
+  - [Software Installations](#software-installations)
+  - [Local Repositories](#local-repositories)
+  - [AWS Credentials & IAM Access](#aws-credentials--iam-access)
+- [Run ARTIS on AWS Instructions](#run-artis-on-aws-instructions)
+  - [Full Setup Instructions](#full-setup-instructions)
+  - [Run ARTIS on AWS Instructions from `get_snet()` ("Restart")](#run-artis-on-aws-instructions-from-get_snet-restart)
 - [Installations](#installations)
-- [Setup Local Python Environment](#setup-local-python-environment)
-- [AWS CLI Setup](#aws-cli-setup)
-- [Optional: `setup_artis_hpc.sh` Script](#optional-setup_artis_hpc.sh-script)
-- [Update ARTIS Model Scripts and Model Inputs](#update-artis-model-scripts-and-model-inputs)
-- [Setting Up New ARTIS HPC on AWS](#setting-up-new-artis-hpc-on-aws)
-- [Running Existing ARTIS HPC Setup](#running-existing-artis-hpc-setup)
-- [Combine ARTIS model outputs into CSVs](#combine-artis-model-outputs-into-csvs)
-- [Download Results, Clean Up AWS and Docker Environments](#download-results-clean-up-aws-and-docker-environments)
-- [Checks & Troubleshooting](#checks-troubleshooting)
+  - [Homebrew Installation](#homebrew-installation)
+  - [Docker Desktop Installation](#docker-desktop-installation)
+  - [AWS CLI Installation](#aws-cli-installation)
+  - [Terraform CLI Installation](#terraform-cli-installation)
+  - [Python Installation](#python-installation)
+- [S3 Bucket & Output Structure](#s3-bucket--output-structure)
+- [Checks & Troubleshooting](#checks--troubleshooting)
+  - [Status of jobs submitted to AWS Batch](#status-of-jobs-submitted-to-aws-batch)
+  - [Troubleshoot failed jobs](#troubleshoot-failed-jobs)
+  - [Check CloudWatch logs for a specific job](#check-cloudwatch-logs-for-a-specific-job)
+  - [Check for all expected outputs in S3 bucket](#check-for-all-expected-outputs-in-s3-bucket)
 
 ## Overview
 
-ARTIS HPC uses AWS Batch, S3, Terraform, Docker, Python, and R to run the ARTIS model across all HS versions and year combinations.  
+This repository [`artis-hpc`](https://github.com/Seafood-Globalization-Lab/artis-hpc) contains scripts to move ARTIS code, configure AWS credentials, and set up AWS to run the model by each HS versions (including all associated years for each HS version). It functions as a wrapper to run the ARTIS package pipeline [`artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) `./02-artis-pipeline.R`.
 
-- The **ARTIS R package** (in [Seafood-Globalization-Lab/artis-model](https://github.com/Seafood-Globalization-Lab/artis-model)) contains all model functions and pipeline scripts.  
-- This **artis-hpc** repo sets up the compute tools, environments and resources:  
-  - Provision EC2/VPC/Batch via Terraform.  
-  - Build a Docker image (`artis-image`) containing software installations and necessary R/py packages.  
+- The **ARTIS R package** [`Seafood-Globalization-Lab/artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) contains all model functions and pipeline scripts that run inside of the `artis-image` docker image on AWS.
+- This **ARTIS HPC** [`Seafood-Globalization-Lab/artis-hpc`](https://github.com/Seafood-Globalization-Lab/artis-hpc) repo sets up the compute tools, environments and resources:  
+  - Provision AWS EC2/S3/VPC/Batch via Terraform  
+  - Build a Docker image (`artis-image`) containing software installations and necessary R and python packages
   - Push Docker image to ECR. 
   - Push code and data inputs to S3.  
   - Submit AWS Batch jobs for each HS version.  
   - Download results to local machine repo directory
-  - (Optional) Resume a failed `get_snet()` step without re-solving the mass-balance (new “restart” tooling).
+  - (Optional) Resume a failed `get_snet()` step without re-solving the mass-balance.
 
-## ARTIS Version Compatibility
+## `artis-model` Version Compatibility
 
-- **Required ARTIS Model Version:** [`Seafood-Globalization-Lab/artis-model@v1.1.0`](https://github.com/Seafood-Globalization-Lab/artis-model/releases/tag/v1.1.0)
+**Required ARTIS Model Version:** [`Seafood-Globalization-Lab/artis-model@v1.1.0`](https://github.com/Seafood-Globalization-Lab/artis-model/releases/tag/v1.1.0) 
+
+Ensure your local `artis-model` repo is up to date with the remote repo and on the appropriate branch that you want to run the model from. Following the ARTIS software development workflow, this is likely `artis-model/development`.
 
 ## Prerequisites
 
-Before submitting any ARTIS jobs, complete the following setup:
+Setup requirements before running any `artis-hpc` scripts. Developed and tested for macOS (arm64 and x86 architecture). 
 
-4. **Required Tools (macOS or Linux)**  [Intall instructions](#installations) 
-   - **Docker Desktop** 
-   - **Terraform CLI**  
-   - **AWS CLI** (v2)
-   - **Python 3.11+** 
-   - **R** (for ARTIS‐model code; not required to run the setup script but used by AWS Batch containers).
+### Software Installations
 
-2. **Local Repositories**  
-   - Clone (or have) a local copy of `Seafood-Globalization-Lab/artis-hpc` 
-      ```zsh
-      git clone https://github.com/Seafood-Globalization-Lab/artis-hpc.git
-      ```
-   
-   - Clone (or have) a local copy of `Seafood-Globalization-Lab/artis-model` so that the `artis-hpc/setup_artis_hpc.sh` script can copy relevant model code, scripts, and input data into your local `artis-hpc` repo.
-      ```zsh
-      git clone https://github.com/Seafood-Globalization-Lab/artis-model.git
-      ```
+Jump to [Intall instructions](#installations) 
 
-1. **AWS Credentials & IAM Access**  
+- AWS CLI (v2)
+- Terraform CLI
+- Python 3.11+
+- Docker Desktop 
 
-   > [!NOTE]  
-   > Create IAM resources as needed (One‐time) with these instructions [docs/iam-setup.md](docs/iam-setup.md)
-   - Ensure you have an IAM user in an Admin group with `AdministratorAccess`. 
-  
+### Local Repositories 
+
+- Local copy of [`Seafood-Globalization-Lab/artis-hpc`](https://github.com/Seafood-Globalization-Lab/artis-hpc) repo on the correct branch.
+- Local copy of [`Seafood-Globalization-Lab/artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) repo so that the `artis-hpc/setup_artis_hpc.sh` script can copy relevant model code, scripts, and input data into your local `artis-hpc` repo.
+
+### AWS Credentials & IAM Access
+
+- IAM name and password
+- AWS access key
+- AWS secret access key
+
+> [!NOTE]  
+> Create IAM resources as needed (One‐time) with these instructions [artis-hpc/docs/iam-setup.md](docs/iam-setup.md)
+- Ensure you have an IAM user in an Admin group with `AdministratorAccess`. 
 
 ## Run ARTIS on AWS Instructions
 
- - **Set your AWS credentials** as environment variables in your shell (replace with your values):  
-     ```zsh
-     export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]
-     export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]
-     export AWS_REGION=us-east-1
-     ```
+### Full Setup Instructions
 
-     ```
-     #check value with 
-     echo $AWS_ACCESS_KEY
-     ```
-- **Set AWS configuration files**  (`~/.aws/credentials` and `~/.aws/config`)
-     ```zsh
-     aws configure set aws_access_key_id $AWS_ACCESS_KEY
-     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-     aws configure set region $AWS_REGION
-     ```
+#### Set your AWS credentials
 
-     ```
-     #check value with 
-     aws configure get aws_access_key_id
-     ```
-- **Set HS_VERSIONS** to run:
-     ```zsh
-     export HS_VERSIONS="02,07,12,17,96"
-     ```
-   - This must be set before running the setup script (it is required in  `create_pipeline_versions.sh` and `submit_artis_jobs.py`).
+- Set as environment variables in **shell/terminal** (replace brackets with your values, do not include brackets):  
 
-1. **Activate Python virtual environment**  
    ```zsh
-   source venv/bin/activate
+   export AWS_ACCESS_KEY=[YOUR_AWS_ACCESS_KEY]
    ```
-
-2. **Upload updated ARTIS code/inputs to S3**  
    ```zsh
-   python3 s3_upload.py
+   export AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]
    ```
-
-3. **Submit new ARTIS Batch jobs**  
    ```zsh
-   python3 submit_artis_jobs.py
+   export AWS_REGION=us-east-1
    ```
-
-4. **Once jobs finish: Download outputs and tear down AWS resources**  
    ```zsh
-   python3 s3_download.py
-   terraform destroy
-   deactivate
+   #example check value
+   echo $AWS_ACCESS_KEY
    ```
 
-That’s it—no need to run the full provisioning steps again.
+#### Set AWS configuration files 
 
+- modify `~/.aws/credentials` and `~/.aws/config`
 
----
-
-## Full Setup (New ARTIS HPC)
-
-1. **Edit directory paths in the setup script**  
-   Open `setup_artis_hpc.sh` and update these variables at the top to match your local clones:
-   ```bash
-   # Path to artis-model code
-   ARTIS_MODEL_CODE_DIR="/path/to/your/artis-model"
-
-   # Path to artis-hpc repo root
-   ARTIS_HPC_DIR="/path/to/your/artis-hpc"
-   ```
-
-2. **Run the setup helper script**  
    ```zsh
-   cd /path/to/artis-hpc
-   chmod +x setup_artis_hpc.sh
-   ./setup_artis_hpc.sh
+   aws configure set aws_access_key_id $AWS_ACCESS_KEY
    ```
-   This will:
-   1. Copy `00-aws-hpc-setup.R`, `02-artis-pipeline.R`, and R package files (`R/`, `DESCRIPTION`, `NAMESPACE`, optional `.Renviron`) from your ARTIS model clone into `data_s3_upload/ARTIS_model_code/`.  
-   2. Sync model inputs (excluding `*_including_value.csv`) into `data_s3_upload/model_inputs/`.  
-   3. Run `create_pipeline_versions.sh` (reads `HS_VERSIONS`) to generate HS‐specific R scripts under `ARTIS_model_code/`.  
-   4. Create or recreate the Python virtual environment `venv/` and install dependencies from `requirements.txt`, with fallback logic on failure.  
-   5. Verify `AWS_ACCESS_KEY` + `AWS_SECRET_ACCESS_KEY` are set, export `AWS_REGION`, and run `aws configure set` to store credentials.
-
-3. **Upload ARTIS code & inputs to S3**  
    ```zsh
-   source venv/bin/activate
-   python3 s3_upload.py
+   aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
    ```
+   ```zsh
+   aws configure set region $AWS_REGION
+   ```
+   ```zsh
+   #check value with 
+   aws configure get aws_access_key_id
+   ```
+
+#### Configure `artis-hpc` repo
+
+- Setup repo with several helper scripts encapsulated in `./setup_artis_hpc.sh`(differs for restarting ARTIS) - replace `< >` with your local repo path
+   
+   ```zsh
+   bash setup_artis_hpc.sh </path/to/local/artis-model> </path/to/local/artis-hpc>
+   ```
+
+   `./setup_artis_hpc.sh` does the following:
+
+   - Set `HS_VERSIONS` environmental variable, 
+   - Create or clear `./data_s3_upload/` directory
+   - Copy `artis-model/model_inputs/` into `artis-hpc` repo (excludes baci `*including_value.csv` files)
+   - Copy `artis-model` R package structure, metadata, and scripts (`./R/, DESRIPTION, NAMESPACE, `00-aws-hpc-setup.R`, `02-artis-pipeline.R`)
+   - Create HS version specific versions of `02-artis-pipeline.R` for AWS Batch Jobs
+   - Detects and sets local machine architecture for Docker image build later
+   - Creates Python Virtual Environment
+   <details>
+      <summary>Open to View Details </summary>
+      **Setup local Python environment**  
+      Create a standardized environment to run the python scripts in. Terminal working directory needs to be in `.../.../artis-hpc` directory. All of the following code is run in the terminal/command line (not the console):
+
+         - confirm you are in the correct working directory
+      ```zsh
+      pwd 
+      ```
+         - create a virtual environment
+      ```zsh
+      python3 -m venv venv
+      ```
+         - open virtual environment
+      ```zsh
+      source venv/bin/activate
+      ```
+         - install all required python packages
+      ```zsh
+      pip3 install -r requirements.txt
+      ```
+         - check that all python requirements have been downloaded
+      ```zsh
+      pip3 list
+      ```
+
+         *If an error occurs follow these instructions:*
+
+         - upgrade version of pip
+      ```zsh
+      pip install --upgrade pip
+      ```
+         - Install all required python modules again
+      ```zsh
+      pip3 install -r requirements.txt
+      ```
+
+         *If errors still occur:*
+
+         - install each python package in the `requirements.txt` file individually
+      ```zsh
+      pip3 install [PACKAGE NAME]
+      ```
+   </details>
+   - Ensures AWS credentials are set
+
+
    - Syncs `data_s3_upload/ARTIS_model_code/` and `data_s3_upload/model_inputs/` to your S3 bucket (e.g., `s3://artis-s3-bucket/`).
 
-4. **Provision AWS & Build Docker image**  
+#### Launch Docker Desktop
+
+- Open your local GUI Docker Desktop application
+
+   Keep this running in the background while setting up ARTIS to run on AWS. Docker Desktop is the Docker engine used to build the Docker image locally and Authenticates with AWS ECR where the image is pushed to. 
+
+#### Prepare and Launch ARTIS HPC on AWS
+
+- Run -- build new Docker image:
+
    ```zsh
    python3 initial_setup.py \
-     -chip arm64 \
-     -aws_access_key $AWS_ACCESS_KEY \
-     -aws_secret_key $AWS_SECRET_ACCESS_KEY \
-     -s3 artis-s3-bucket \
-     -ecr artis-image
+   -chip arm64 \
+   -aws_access_key $AWS_ACCESS_KEY \
+   -aws_secret_key $AWS_SECRET_ACCESS_KEY \
+   -s3 artis-s3-bucket \
+   -ecr artis-image
    ```
-   - `-chip` can be `arm64` (M1/M2 Mac) or `x86`.  
-   - `-s3` is your existing S3 bucket name.  
-   - `-ecr` is the ECR repository name for `artis-image`.  
+   - `-chip` is `arm64` (M1/M2 Mac) or `x86` (Intel) based on the CPU architecture of your Mac machine (not developed or tested for non-Mac machines).  
+   - `-s3` S3 bucket name. Leave `artis-s3-bucket` to prevent breaking things.  
+   - `-ecr` is the ECR repository name `artis-image`. The Docker image is also `artis-image`. Leave this alone. 
    - **Optional:** add `-di artis-image:latest` to skip Docker build if you already have an image in ECR.
 
-   **This does:**
-   1. Copies the correct Dockerfile (ARM64 vs. X86) to `./Dockerfile`.  
-   2. Injects AWS credentials into `./Dockerfile` and `.Renviron`.  
-   3. Updates Terraform files (`main.tf`, `variables.tf`) with S3/ECR names.  
-   4. Runs `terraform init`, `terraform fmt`, `terraform validate`, and `terraform apply -auto-approve` to create VPC, Subnets, Security Groups, IAM Roles, Batch Compute Environments, Job Queues, etc.  
-   5. Builds and pushes the `artis-image` Docker image.  
-   6. Stops before submitting Batch jobs (proceed to next step).  
-   7. If anything fails, runs `terraform destroy` to clean up.
+- OR Run -- use existing Docker image:
 
-5. **Submit initial ARTIS Batch jobs**  
+   ```zsh
+   python3 initial_setup.py \
+   -chip arm64 \
+   -aws_access_key $AWS_ACCESS_KEY \
+   -aws_secret_key $AWS_SECRET_ACCESS_KEY \
+   -s3 artis-s3-bucket \
+   -ecr artis-image \
+   -di artis-image:latest
+   ```
+
+   **`initial_setup.py` Does:**
+   - Copies the correct Dockerfile (ARM64 vs. X86) from to `./Dockerfile`.  
+   - Injects AWS credentials into `./Dockerfile` and `.Renviron`.  
+   - Updates Terraform files (`main.tf`, `variables.tf`) with S3/ECR names.  
+   - Runs `terraform init`, `terraform fmt`, `terraform validate`, and `terraform apply -auto-approve` to create VPC, Subnets, Security Groups, IAM Roles, Batch Compute Environments, Job Queues, etc.  
+   - Updates `s3_upload.py` and `s3_download.py` to use the new S3 bucket name
+   - Updates `docker_image_create_and_upload.py` to use the new ECR repo name
+   - Runs `s3_upload.py` to upload `./data_s3_upload/ARTIS_model_code/` and `./data_s3_upload/model_inputs/` to S3. 
+   - Builds and pushes the `artis-image` Docker image with `./docker_image_create_and_upload.py` copy.  
+   - Stops before submitting Batch jobs (proceed to next step).  
+
+#### Submit ARTIS Batch Jobs
+
+- Update environmental variable `HS_VERSIONS` to control which HS versions are run on AWS.
+
+   Each HS version submitted in this call will boot up a separate instance of the Docker image `artis-image` to run the ARTIS pipeline for that particular HS version over all years included in that particular HS version. runs `02-artis-pipeline_hsXX.R` inside the container.
+
+   Examples:
+
+   ```zsh
+   export HS_VERSIONS="96"
+   ``` 
+
+   ```zsh
+   export HS_VERSIONS="96,02"
+   ``` 
+
+- Submit Jobs to AWS Batch for each specified HS version
+
    ```zsh
    python3 submit_artis_jobs.py
    ```
-   - Loops over each HS version in `HS_VERSIONS` and runs `02-artis-pipeline_hsXX.R` inside the container.
 
-6. **Monitor progress**  
-   - Check AWS Batch job statuses in the AWS console.  
-   - View CloudWatch logs under `/aws/batch/job/...` for `get_country_solutions()` and `get_snet()` output.
+#### Monitor Progress
 
-7. **Download results & tear down**  
+   - Check AWS Batch job statuses in the AWS console on your browser.  
+   - Open specific job and look for "Log stream name" link/id. Open to see real time console output from the model run. 
+
+#### Download Outputs 
+
    ```zsh
    python3 s3_download.py
-   terraform destroy
-   deactivate
    ```
-   - Downloads outputs into `outputs_[RUN_DATE]/…`.  
-   - Removes all AWS resources via Terraform.  
-   - You may manually empty or retain the S3 bucket for future runs. 
+   - Downloads outputs into local`artis-hpc/outputs_[RUN_DATE]/…`
 
-## Restarting ARTIS (Incremental Run)
+#### Teardown all AWS resources  
 
-**Use case:** You already have AWS infrastructure and the `artis-image` Docker image in place. To resume a failed `get_snet()` or update code/inputs:
+   - Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. 
 
-1. **Activate Python environment**  
    ```zsh
-   cd /path/to/artis-hpc
-   source venv/bin/activate
+   terraform destroy
+   ```
+   
+   Manually remove these files when cleaning up directory. DO NOT COMMIT TO GIT - they include your personal AWS credentials. KEEP `./terraform_scipts/*` - these are templates without credentials.
+
+### Run ARTIS on AWS Instructions from `get_snet()` ("Restart")
+
+*Use case:* An error occured after `get_country_solutions` portion of  `02-artis-pipeline.R`. Could be something to do with the generation of the trade data (snet) or consumption, or the embedded AWS code in the model. No need to run compute intensive country solutions again. 
+
+#### Prerequisites
+
+- You need a complete set of `./outputs/cvxopt_snet/*` and `./outputs/quadprog_snet/*` files. You actually only need `[RUN-YYYY-MM-DD]_all-country-est_[yyyy]_HS[version].RDS` files to restart ARTIS.
+- Your local `artis-hpc` repo is up-to-date and `setup_artis_hpc.sh` has been run at least once to stage `artis-hpc` code (FIXIT: add links).
+- AWS credentials are set as environmental variables (See above to set FIXIT: add link)
+- Ensure updated ARTIS model code is updated in the appropriate location. If changes were made in [`artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) then you need to run `setup_artis_hpc.sh` again to copy over updated versions of the code to the `artis-hpc/data_s3_upload/` directory for upload to s3. You could also manually upload the changed file to s3 via the browser GUI, or manually copy the changed file over to `artis-hpc/data_s3_upload/` to programmically upload. 
+- *NOTE* As of 2025-08-07 `s3_upload.py` ONLY uploads 2 folders in `artis-hpc/data_s3_upload/`:  `artis-hpc/data_s3_upload/ARTIS_model_code` and `artis-hpc/data_s3_upload/model_inputs/`.
+
+#### Copy and Move All Country Solutions Files
+
+- Copy and paste only `[RUN-YYYY-MM-DD]_all-country-est_[yyyy]_HS[version].RDS` files recursively from one local directory to another. 
+
+   ```zsh
+   bash move_all_est.sh <path/to/model/outputs/to/copy> <path/to/folder/to/paste>
    ```
 
-2. **(If needed) Update HS versions**  
+   Example:
+
+   ```zsh
+   bash move_all_est.sh \
+      Users/theamarks/Documents/git-projects/artis-model/outputs \
+      Users/theamarks/Documents/git-projects/artis-hpc/data_s3_upload/outputs
+   ```
+
+   Will include both solver subdirectories (`./outputs/cvxopt_snet/` and `./outputs/quadprog_snet/`) and maintain their relevant HS version and year subdirectory architecture. Excludes all individual country solution files to reduce upload to AWS S3.
+
+#### Upload All Country Solutions to S3
+
+- Open [AWS S3](https://us-east-1.console.aws.amazon.com/s3/home?region=us-east-1) in your browser.
+- Open `artis-s3-bucket`
+- Click orange "Upload" button on the right hand side
+- Navigate and Select `outputs/` folder that contains only `[RUN-YYYY-MM-DD]_all-country-est_[yyyy]_HS[version].RDS` files separated in last step (second path listed in `bash move_all_est.sh` command)
+
+#### Copy and Paste `02-artis-pipeline-restart-snet-HS[version].R` 
+
+- Copy all `artis-hpc/02-artis-pipeline-restart-snet-HS[version].R` files to `artis-hpc/data_s3_upload/ARTIS_model_code/` for `initial_setup_restart_snet.py` script to upload to s3. 
+- OR manually upload them to the same folder on AWS S3 browser window. 
+
+#### Prepare and Launch ARTIS HPC on AWS ("Restart")
+
+- Run -- Rebuild and push Docker image AND upload `data_s3_upload/ARTIS_model_code/` and `data_s3_upload/model_inputs/`to S3
+
+   ```zsh
+   python3 initial_setup_restart_snet.py \
+   -chip arm64 \
+   --aws_access_key "$AWS_ACCESS_KEY" \
+   --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" \
+   -s3 artis-s3-bucket \
+   -ecr artis-image
+   ```
+
+   - Copy the correct Dockerfile  
+   - Template your bucket/ECR names into Terraform & upload scripts  
+   - `terraform apply` (no-op if infrastructure already exists)  
+   - Upload ARTIS code & inputs to S3  (no --skip-upload flag)
+   - Build new Docker image and push to ECR  
+
+- OR Run - Reuse and push existing Docker Image AND skip uploading files from `./data_s3_upload/`
+
+   ```bash
+   python3 initial_setup_restart_snet.py \
+   -chip arm64 \
+   --skip-upload \
+   --aws_access_key "$AWS_ACCESS_KEY" \
+   --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" \
+   -s3 artis-s3-bucket \
+   -ecr artis-image
+   -di artis-image:latest
+   ```
+
+   - Template your bucket/ECR names into Terraform & upload scripts  
+   - `terraform apply` (no-op if infrastructure already exists)  
+   - DOES NOT Upload ARTIS code & inputs to S3  
+   - Push existing local Docker image to ECR  (change `-di <your-image:tag>` flag to point to different Docker image)
+
+#### Submit ARTIS Batch Jobs ("Restart at snet")
+
+- Update environmental variable `HS_VERSIONS` to control which HS versions are run on AWS.
+
    ```zsh
    export HS_VERSIONS="96"
-   ./create_pipeline_versions.sh
+   ``` 
+
+- Submit Jobs to AWS Batch for each specified HS version to restart ARTIS pipeline at `get_snet()` and skip country solutions.
+
+   ```bash
+   python3 submit_restart_artis_snet_jobs.py
    ```
-## Restarting ARTIS S-net on AWS
 
-Follow these steps to resume only the S-net stage of the ARTIS pipeline on AWS Batch.
+#### Download Outputs 
 
-### 1. Prerequisites
+- Download outputs into local`artis-hpc/outputs_[RUN_DATE]/…` 
 
-- You’ve already provisioned AWS infra & pushed the Docker image at least once.  
-- You have a working Python 3.11+ venv with dependencies installed.  
-- Your local `artis-hpc` repo is up-to-date and `setup_artis_hpc.sh` has been run at least once to stage model code.
+   ```zsh
+   python3 s3_download.py
+   ```
 
-### 2. Set AWS credentials & region
+   Can delete `outputs/cvxopt/` and `outputs/quadprog/` on AWS S3 browser page to omit the all country solution files if they already exist locally. 
 
-Export only your AWS keys and region—the bucket & ECR repo names are hard-coded in the scripts:
+#### Teardown all AWS resources  
 
-```bash
-export AWS_ACCESS_KEY=[YOUR_IAM_ACCESS_KEY]  
-export AWS_SECRET_ACCESS_KEY=[YOUR_IAM_SECRET_ACCESS_KEY]               
-export AWS_REGION=us-east-1              # AWS region
-```
+- Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. 
 
-### 3. (Re)generate helper scripts & stage model code
-
-If you’ve updated the ARTIS model code or R pipelines since your last setup, rerun:
-
-```bash
-chmod +x setup_artis_hpc.sh
-./setup_artis_hpc.sh
-```
-
-This populates `data_s3_upload/ARTIS_model_code/` and regenerates any HS-specific R scripts.
-
-### 4. Bootstrap infra, sync inputs & push Docker image
-
-Run the restart‐setup script. It will:
-
-1. Copy the correct Dockerfile  
-2. Template your bucket/ECR names into Terraform & upload scripts  
-3. `terraform apply` (no-op if infra already exists)  
-4. Upload ARTIS code & inputs to S3  
-5. Build (or reuse) and push the Docker image to ECR  
-
-```bash
-python3 initial_setup_restart_snet.py \
-  --chip arm64 \
-  --aws_access_key        "$AWS_ACCESS_KEY" \
-  --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" \
-  --s3 artis-s3-bucket \
-  --ecr artis-image
-```
-
-> Omit `--docker_image` if you want a fresh build → push.  
-> To reuse an existing local image, add `-di <your-image:tag>`.
-
-### 5. Submit the S-net restart jobs
-
-With infra, code, and image in place, fire off the restart jobs:
-
-```bash
-python3 submit_restart_artis_snet_jobs.py
-```
-
-This reads your `02-artis-pipeline-restart-snet-hsXX.R` scripts and submits one Batch job per HS version.
-
-Your ARTIS S-net restart run is now underway!  
-
+   ```zsh
+   terraform destroy
+   ```
+   
+   Manually remove these files when cleaning up directory. DO NOT COMMIT TO GIT - they include your personal AWS credentials. KEEP `./terraform_scipts/*` - these are templates without credentials.
 
 ## Installations
 
