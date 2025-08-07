@@ -1,150 +1,65 @@
-
-# libraries
+#!/usr/bin/env python3
 import os
+import sys
 import boto3
+from botocore.exceptions import ClientError
 
-# Functions=======================================================================
+# ─── CONFIGURATION (from env vars) ──────────────────────────────────────────────
 
-# Create an S3 client based on region
-def create_s3_client(region=None):
-    s3_client = None
-    if region is None:
-        # Create an S3 bucket client in the default region in the aws config file
-        s3_client = boto3.client("s3")
-    else:
-        # Create an S3 bucket client in a specific AWS region
-        s3_client = boto3.client("s3", region_name=region)
-    return s3_client
+# must export these exact vars beforehand:
+aws_key    = os.environ.get("AWS_ACCESS_KEY")
+aws_secret = os.environ.get("AWS_SECRET_ACCESS_KEY")
+aws_region = os.environ.get("AWS_REGION")
 
-# List all buckets available to user
-def list_s3_buckets(s3_client=None):
-    s3_buckets = []
+if not (aws_key and aws_secret and aws_region):
+    sys.exit(
+        "Error: please export AWS_ACCESS_KEY, "
+        "AWS_SECRET_ACCESS_KEY, and AWS_REGION before running."
+    )
 
-    response = s3_client.list_buckets()
-    s3_buckets = [bucket["Name"] for bucket in response["Buckets"]]
-    return s3_buckets
+# S3 bucket to mirror into
+S3_BUCKET = os.environ.get("ARTIS_S3_BUCKET", "artis-s3-bucket")
 
-# Create an S3 bucket
-# taken from: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-example-creating-buckets.html
-def create_s3_bucket(s3_client, bucket_name, region=None):
+# local root directory to mirror
+DATA_DIR  = "data_s3_upload"
 
-    # Create S3 Bucket
+
+# ─── HELPERS ─────────────────────────────────────────────────────────────────────
+
+def create_s3_client():
+    """Return an S3 client using explicit credentials."""
+    return boto3.client(
+        "s3",
+        region_name=aws_region,
+        aws_access_key_id=aws_key,
+        aws_secret_access_key=aws_secret
+    )
+
+def upload_file(s3, bucket, local_path, key):
+    """Upload one file to S3, printing success or failure."""
     try:
-        if region is None:
-            s3_client.create_bucket(Bucket=bucket_name)
-        else:
-            location = {"LocationConstraint": region}
-            s3_client.create_bucket(Bucket=bucket_name,
-                                    CreateBucketConfiguration=location)
+        s3.upload_file(local_path, bucket, key)
+        print(f"✔ {local_path} → s3://{bucket}/{key}")
     except ClientError as e:
-        print(e)
-        return False
-    
-    return True
+        print(f"✘ {local_path} → s3://{bucket}/{key}: {e}")
 
-# Upload file to S3 bucket
-# Based on: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-uploading-files.html
-def upload_file(s3_client=None, bucket_name=None, file_name=None, object_name=None):
+# ─── MAIN ────────────────────────────────────────────────────────────────────────
 
-    if not object_name:
-        object_name = file_name
-    
-    try:
-        response = s3_client.upload_file(
-            file_name,
-            bucket_name,
-            object_name
-        )
-    except ClientError as e:
-        return False
-    return True
+def main():
+    s3 = create_s3_client()
 
+    if not os.path.isdir(DATA_DIR):
+        sys.exit(f"Error: data directory '{DATA_DIR}' not found.")
 
-#==================================================================================
+    # Walk through all files under DATA_DIR
+    for root, _, files in os.walk(DATA_DIR):
+        for fname in files:
+            local_path = os.path.join(root, fname)
+            # strip off leading DATA_DIR/ to build the S3 key
+            rel_path = os.path.relpath(local_path, DATA_DIR)
+            # normalize to forward slashes for S3
+            s3_key   = rel_path.replace(os.sep, "/")
+            upload_file(s3, S3_BUCKET, local_path, s3_key)
 
-# Define AWS region
-region = "us-east-1"
-# Create an S3 client to interact with AWS S3
-s3_client = create_s3_client(region=region)
-# Define bucket name
-s3_bucket_name = "artis-s3-bucket"
-
-# Note: S3 bucket will have already been created through Terraform scripts
-
-# Upload all model inputs data to S3 bucket
-data_s3_upload_dir = "data_s3_upload"
-model_inputs_dir = "model_inputs"
-datadir = os.path.join(data_s3_upload_dir, model_inputs_dir)
-print(datadir)
-datadir_contents = os.listdir(datadir)
-# Only get files within data directory
-data_files = [f for f in datadir_contents if os.path.isfile(os.path.join(datadir, f))]
-
-# AWS data directory
-aws_model_inputs_fp = model_inputs_dir
-
-# Upload all data files from data directory to S3 object
-for data_file in data_files:
-    file_fp = os.path.join(datadir, data_file)
-    aws_fp = os.path.join(aws_model_inputs_fp, data_file)
-    # Note: the files will follow the same file and directory structure that the local data directory has.
-    response = upload_file(
-        s3_client= s3_client,
-        bucket_name = s3_bucket_name,
-        file_name = file_fp,
-        object_name = aws_fp
-    )
-
-    if response:
-        print(f"Successful upload {file_fp} to {aws_fp}")
-    else:
-        print(f"Error uploading {file_fp} to {aws_fp}")
-
-
-# Upload all ARTIS model code files
-
-# Uploading base set of model running files
-artis_r_dir = os.path.join(data_s3_upload_dir, "ARTIS_model_code")
-artis_r_contents = os.listdir(artis_r_dir)
-base_pkg_files = [f for f in artis_r_contents if os.path.isfile(os.path.join(artis_r_dir, f))]
-
-aws_r_code_dir = "ARTIS_model_code"
-
-for base_f in base_pkg_files:
-    base_f_fp = os.path.join(artis_r_dir, base_f)
-    aws_f_fp = os.path.join(aws_r_code_dir, base_f)
-    response = upload_file(
-        s3_client = s3_client,
-        bucket_name = s3_bucket_name,
-        file_name = base_f_fp,
-        object_name = aws_f_fp
-    )
-
-    if response:
-        print(f"Successful upload {base_f_fp} to {aws_f_fp}")
-    else:
-        print(f"Error uploading {base_f_fp} to {aws_f_fp}")
-
-# Uploading all ARTIS R package files
-artis_pkg_dir = os.path.join(artis_r_dir, "R")
-artis_pkg_contents = os.listdir(artis_pkg_dir)
-artis_pkg_files = [f for f in artis_pkg_contents if os.path.isfile(os.path.join(artis_pkg_dir, f))]
-
-aws_pkg_dir = os.path.join(aws_r_code_dir, "R")
-
-for pkg_f in artis_pkg_files:
-
-    pkg_f_fp = os.path.join(artis_pkg_dir, pkg_f)
-    aws_pkg_f_fp = os.path.join(aws_pkg_dir, pkg_f)
-
-    response = upload_file(
-        s3_client = s3_client,
-        bucket_name = s3_bucket_name,
-        file_name = pkg_f_fp,
-        object_name = aws_pkg_f_fp
-    )
-
-    if response:
-        print(f"Successful upload {pkg_f_fp} to {aws_pkg_f_fp}")
-    else:
-        print(f"Error uploading {pkg_f_fp} to {aws_pkg_f_fp}")
+if __name__ == "__main__":
+    main()
