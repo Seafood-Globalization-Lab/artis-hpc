@@ -9,14 +9,17 @@
 set -e  # Exit immediately on error
 
 # ---------------------------
-# User Inputs (EDIT THESE)
+# Parse Input Arguments
 # ---------------------------
 
-# Path to artis-model code
-ARTIS_MODEL_CODE_DIR="/Users/theamarks/Documents/git-projects/artis-model"
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 <path_to_artis_model_code> <path_to_artis_hpc_repo>"
+  exit 1
+fi
 
-# Path to artis-hpc repo root
-ARTIS_HPC_DIR="/Users/theamarks/Documents/git-projects/artis-hpc"
+ARTIS_MODEL_CODE_DIR="$1"
+ARTIS_HPC_DIR="$2"
+
 
 # Set HS_VERSIONS as environmental variable (comma-separated, no spaces, i.e. "02,07,12,17,96" or "96")
 export HS_VERSIONS="02,07,12,17,96"
