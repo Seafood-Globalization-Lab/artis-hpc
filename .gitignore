@@ -34,12 +34,14 @@ outputs*/
 
 docker_image_files/
 
-
 # R files
 .Rhistory
 .Rproj.user
 
 # rendered README
 README.html
+
+# Positron preview files
+README_files/*
 
 
