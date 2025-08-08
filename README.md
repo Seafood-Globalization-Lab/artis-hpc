@@ -209,10 +209,10 @@ Jump to [Intall instructions](#installations)
 
 #### Prepare and Launch ARTIS HPC on AWS
 
-- Run -- build new Docker image:
+- Run -- build new Docker image -- keep system from sleeping :
 
-   ```zsh
-   python3 initial_setup.py \
+   ```zsh 
+   caffeinate -s python3 initial_setup.py \
    -chip arm64 \
    -aws_access_key $AWS_ACCESS_KEY \
    -aws_secret_key $AWS_SECRET_ACCESS_KEY \
@@ -223,6 +223,9 @@ Jump to [Intall instructions](#installations)
    - `-s3` S3 bucket name. Leave `artis-s3-bucket` to prevent breaking things.  
    - `-ecr` is the ECR repository name `artis-image`. The Docker image is also `artis-image`. Leave this alone. 
    - **Optional:** add `-di artis-image:latest` to skip Docker build if you already have an image in ECR.
+   - **Optional:** add `caffeinate` before calling python script. This is a mac native command. Docker image build can take a while.
+      - `caffeinate -s` prevents the system from sleeping while the preceeding process (i.e. `python3 initial_setup.py`) is running.
+      - `caffeinate -d -s` prevents the system and display from sleeping.
 
 - OR Run -- use existing Docker image:
 
@@ -276,10 +279,15 @@ Jump to [Intall instructions](#installations)
 
 #### Download Outputs 
 
+   - Downloads outputs into local`artis-hpc/outputs_[RUN_DATE]/…`
    ```zsh
    python3 s3_download.py
    ```
-   - Downloads outputs into local`artis-hpc/outputs_[RUN_DATE]/…`
+
+   - Add `caffeinate` before call to keep process running (prevents system sleep)
+   ```zsh
+   caffeinate -s python3 s3_download.py
+   ```  
 
 #### Teardown all AWS resources  
 
@@ -290,6 +298,9 @@ Jump to [Intall instructions](#installations)
    ```
    
    Manually remove these files when cleaning up directory. DO NOT COMMIT TO GIT - they include your personal AWS credentials. KEEP `./terraform_scipts/*` - these are templates without credentials.
+
+   ```zsh 
+
 
 ### Run ARTIS on AWS Instructions from `get_snet()` ("Restart")
 
@@ -391,6 +402,12 @@ Jump to [Intall instructions](#installations)
    ```zsh
    python3 s3_download.py
    ```
+
+- Add `caffeinate` before call to keep process running (prevents system sleep)
+
+   ```zsh
+   caffeinate -s python3 s3_download.py
+   ```  
 
    Can delete `outputs/cvxopt/` and `outputs/quadprog/` on AWS S3 browser page to omit the all country solution files if they already exist locally. 
 
