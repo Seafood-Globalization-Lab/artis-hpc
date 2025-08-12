@@ -299,9 +299,6 @@ Jump to [Intall instructions](#installations)
    
    Manually remove these files when cleaning up directory. DO NOT COMMIT TO GIT - they include your personal AWS credentials. KEEP `./terraform_scipts/*` - these are templates without credentials.
 
-   ```zsh 
-
-
 ### Run ARTIS on AWS Instructions from `get_snet()` ("Restart")
 
 *Use case:* An error occured after `get_country_solutions` portion of  `02-artis-pipeline.R`. Could be something to do with the generation of the trade data (snet) or consumption, or the embedded AWS code in the model. No need to run compute intensive country solutions again. 
