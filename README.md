@@ -99,6 +99,29 @@ Jump to [Intall instructions](#installations)
 
 ### Full Setup Instructions
 
+#### Reset your local `artis-hpc`
+
+- navigate to main branch of repo
+   ```zsh
+   git switch main
+   ```
+- get Github (remote/origin) version
+   ```zsh
+   git fetch origin
+   ```
+- set your local version to be the same as the Github version
+   ```zsh
+   git reset --hard
+   ```
+- Dry run of deleteing all files not in the Github version. Only lists files that would be deleted with full call. Inspect these files to ensure you don't delete a new file you created. When this repo runs there are a lot of file copies made and moved to the project root. Cleaning up these file versions helps troubleshoot and keep things clean between runs. 
+   ```zsh
+   git clean -fdxn
+   ```
+- Delete all files not in Github version.
+   ```zsh
+   git clean -fdx
+   ```
+
 #### Set your AWS credentials
 
 - Set as environment variables in **shell/terminal** (replace brackets with your values, do not include brackets):  
@@ -316,13 +339,13 @@ Jump to [Intall instructions](#installations)
 - Copy and paste only `[RUN-YYYY-MM-DD]_all-country-est_[yyyy]_HS[version].RDS` files recursively from one local directory to another. 
 
    ```zsh
-   bash move_all_est.sh <path/to/model/outputs/to/copy> <path/to/folder/to/paste>
+   move_all_est.sh <path/to/model/outputs/to/copy> <path/to/folder/to/paste>
    ```
 
    Example:
 
    ```zsh
-   bash move_all_est.sh \
+   move_all_est.sh \
       Users/theamarks/Documents/git-projects/artis-model/outputs \
       Users/theamarks/Documents/git-projects/artis-hpc/data_s3_upload/outputs
    ```
