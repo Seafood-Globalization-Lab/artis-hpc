@@ -48,18 +48,18 @@ dir.create(outdir_snet)
 # 1) Reconstruct the df_years table exactly as in initial_variable_setup()
 df_years <- data.frame(
   HS_year      = c(
-    rep("96", length(1996:2020)),
-    rep("02", length(2002:2020)),
-    rep("07", length(2007:2020)),
-    rep("12", length(2012:2020)),
-    rep("17", length(2017:2020))
+    rep("96", length(1996:2023)),
+    rep("02", length(2002:2023)),
+    rep("07", length(2007:2023)),
+    rep("12", length(2012:2023)),
+    rep("17", length(2017:2023))
   ),
   analysis_year = c(
-    1996:2020,
-    2002:2020,
-    2007:2020,
-    2012:2020,
-    2017:2020
+    1996:2023,
+    2002:2023,
+    2007:2023,
+    2012:2023,
+    2017:2023
   ),
   stringsAsFactors = FALSE
 )

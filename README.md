@@ -168,7 +168,12 @@ Jump to [Intall instructions](#installations)
 
    `./setup_artis_hpc.sh` does the following:
 
-   - Set `HS_VERSIONS` environmental variable, 
+   - Set `HS_VERSIONS` environmental variable
+
+      ```zsh
+      export HS_VERSIONS="96,02,07,12,17"
+      ``` 
+
    - Create or clear `./data_s3_upload/` directory
    - Copy `artis-model/model_inputs/` into `artis-hpc` repo (excludes baci `*including_value.csv` files)
    - Copy `artis-model` R package structure, metadata, and scripts (`./R/, DESRIPTION, NAMESPACE, `00-aws-hpc-setup.R`, `02-artis-pipeline.R`)
@@ -235,7 +240,7 @@ Jump to [Intall instructions](#installations)
 - Run -- build new Docker image -- keep system from sleeping :
 
    ```zsh 
-   caffeinate -s python3 initial_setup.py \
+   caffeinate -imsu python3 initial_setup.py \
    -chip arm64 \
    -aws_access_key $AWS_ACCESS_KEY \
    -aws_secret_key $AWS_SECRET_ACCESS_KEY \
@@ -247,13 +252,17 @@ Jump to [Intall instructions](#installations)
    - `-ecr` is the ECR repository name `artis-image`. The Docker image is also `artis-image`. Leave this alone. 
    - **Optional:** add `-di artis-image:latest` to skip Docker build if you already have an image in ECR.
    - **Optional:** add `caffeinate` before calling python script. This is a mac native command. Docker image build can take a while.
-      - `caffeinate -s` prevents the system from sleeping while the preceeding process (i.e. `python3 initial_setup.py`) is running.
-      - `caffeinate -d -s` prevents the system and display from sleeping.
+      **Flags:**
+      - `-i` prevent idle sleep (crucial)
+      - `-m` prevent disk sleep
+      - `-s` prevent system sleep (on AC power)
+      - `-u` simulate a user activity event at start  
+      - `-d` prevent the  display from sleeping
 
 - OR Run -- use existing Docker image:
 
    ```zsh
-   python3 initial_setup.py \
+   caffeinate -imsu python3 initial_setup.py \
    -chip arm64 \
    -aws_access_key $AWS_ACCESS_KEY \
    -aws_secret_key $AWS_SECRET_ACCESS_KEY \
@@ -268,6 +277,7 @@ Jump to [Intall instructions](#installations)
    - Updates Terraform files (`main.tf`, `variables.tf`) with S3/ECR names.  
    - Runs `terraform init`, `terraform fmt`, `terraform validate`, and `terraform apply -auto-approve` to create VPC, Subnets, Security Groups, IAM Roles, Batch Compute Environments, Job Queues, etc.  
    - Updates `s3_upload.py` and `s3_download.py` to use the new S3 bucket name
+   - Copies `./docker_image_files_original/` to new `./docker_image_files/` which is used the docker image setup.
    - Updates `docker_image_create_and_upload.py` to use the new ECR repo name
    - Runs `s3_upload.py` to upload `./data_s3_upload/ARTIS_model_code/` and `./data_s3_upload/model_inputs/` to S3. 
    - Builds and pushes the `artis-image` Docker image with `./docker_image_create_and_upload.py` copy.  
@@ -328,7 +338,7 @@ Jump to [Intall instructions](#installations)
 
 #### Prerequisites
 
-- You need a complete set of `./outputs/cvxopt_snet/*` and `./outputs/quadprog_snet/*` files. You actually only need `[RUN-YYYY-MM-DD]_all-country-est_[yyyy]_HS[version].RDS` files to restart ARTIS.
+- You need a complete set of `./outputs/cvxopt_snet/*` and `./outputs/quadprog_snet/*` files. These are the `get_country_solutions.R` results. You actually only need `[RUN-YYYY-MM-DD]_all-country-est_[yyyy]_HS[version].RDS` files to restart ARTIS.
 - Your local `artis-hpc` repo is up-to-date and `setup_artis_hpc.sh` has been run at least once to stage `artis-hpc` code (FIXIT: add links).
 - AWS credentials are set as environmental variables (See above to set FIXIT: add link)
 - Ensure updated ARTIS model code is updated in the appropriate location. If changes were made in [`artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) then you need to run `setup_artis_hpc.sh` again to copy over updated versions of the code to the `artis-hpc/data_s3_upload/` directory for upload to s3. You could also manually upload the changed file to s3 via the browser GUI, or manually copy the changed file over to `artis-hpc/data_s3_upload/` to programmically upload. 
@@ -369,7 +379,7 @@ Jump to [Intall instructions](#installations)
 - Run -- Rebuild and push Docker image AND upload `data_s3_upload/ARTIS_model_code/` and `data_s3_upload/model_inputs/`to S3
 
    ```zsh
-   python3 initial_setup_restart_snet.py \
+   caffeinate -imsu python3 initial_setup_restart_snet.py \
    -chip arm64 \
    --aws_access_key "$AWS_ACCESS_KEY" \
    --aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" \
@@ -381,12 +391,20 @@ Jump to [Intall instructions](#installations)
    - Template your bucket/ECR names into Terraform & upload scripts  
    - `terraform apply` (no-op if infrastructure already exists)  
    - Upload ARTIS code & inputs to S3  (no --skip-upload flag)
+   - Copies `./docker_image_files_original/` to new `./docker_image_files/` which is used the docker image setup.
    - Build new Docker image and push to ECR  
+   - **Optional:** add `caffeinate` before calling python script. This is a mac native command. Docker image build can take a while.
+      **Flags:**
+      - `-i` prevent idle sleep (crucial)
+      - `-m` prevent disk sleep
+      - `-s` prevent system sleep (on AC power)
+      - `-u` simulate a user activity event at start  
+      - `-d` prevent the  display from sleeping
 
 - OR Run - Reuse and push existing Docker Image AND skip uploading files from `./data_s3_upload/`
 
-   ```bash
-   python3 initial_setup_restart_snet.py \
+   ```zsh
+   caffeinate -imsu python3 initial_setup_restart_snet.py \
    -chip arm64 \
    --skip-upload \
    --aws_access_key "$AWS_ACCESS_KEY" \
@@ -411,7 +429,7 @@ Jump to [Intall instructions](#installations)
 
 - Submit Jobs to AWS Batch for each specified HS version to restart ARTIS pipeline at `get_snet()` and skip country solutions.
 
-   ```bash
+   ```zsh
    python3 submit_restart_artis_snet_jobs.py
    ```
 
