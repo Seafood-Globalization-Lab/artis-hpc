@@ -324,7 +324,7 @@ Jump to [Intall instructions](#installations)
 
 #### Teardown all AWS resources  
 
-   - Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. 
+   - Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. *Requires "yes" input in terminal prompt*.
 
    ```zsh
    terraform destroy
@@ -451,7 +451,7 @@ Jump to [Intall instructions](#installations)
 
 #### Teardown all AWS resources  
 
-- Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. 
+- Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. *Requires "yes" input in terminal prompt*.
 
    ```zsh
    terraform destroy
