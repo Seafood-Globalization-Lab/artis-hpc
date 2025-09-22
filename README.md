@@ -549,7 +549,7 @@ If this has been unsuccessful you might need to install xcode command line tools
 
 ## S3 Bucket & Output Structure
 
-Below is the expected layout under your S3 bucket (e.g., `s3://artis-s3-bucket/outputs/`):
+Below is the expected layout under your S3 bucket (e.g., `s3://artis-s3-bucket/outputs/`). Note that an S3 bucket is a flat architecture, meaning it does not have true directories like a local machine. It uses "prefixes" that can look like an architecture, but they are in fact just long file names. This matches the local output file architecture of the ARTIS model.
 
 ```text
 s3://artis-s3-bucket/outputs/
@@ -561,8 +561,6 @@ s3://artis-s3-bucket/outputs/
 │   │   │   ├── [RUN DATE]_analysis-documentation_countries-with-no-solve-qp-solution_[YEAR]_HS[VERSION].txt
 │   │   │   ├── [RUN DATE]_country-est_[COUNTRY ISO3C]_[YEAR]_HS[VERSION].RDS
 │   │   │   └── … (other per-country RDS files)
-│   │   ├── [YEAR]/
-│   │   │   └── … (same pattern)
 │   │   └── no_solve_countries.csv
 │   └── … (other HS versions)
 ├── quadprog_snet/
@@ -573,8 +571,6 @@ s3://artis-s3-bucket/outputs/
 │   │   │   ├── [RUN DATE]_analysis-documentation_countries-with-no-solve-qp-solution_[YEAR]_HS[VERSION].txt
 │   │   │   ├── [RUN DATE]_country-est_[COUNTRY ISO3C]_[YEAR]_HS[VERSION].RDS
 │   │   │   └── … (other per-country RDS files)
-│   │   ├── [YEAR]/
-│   │   │   └── … (same pattern)
 │   │   └── no_solve_countries.csv
 │   └── … (other HS versions)
 ├── snet/
