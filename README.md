@@ -13,39 +13,31 @@ This repository automates and orchestrates running the ARTIS model pipeline [`ar
    - Option to skip upload updated model inputs
    - Submit Batch jobs to start at `get_snet()` using modified `02-artis-pipeline-restart-snet-hs[yy].R`
 
-**Primary Audience**  
-A technically proficient person (running macOS) who maintains, develops, and runs the ARTIS mdoel. 
 
-**What This Repo Does Not Do:**
+> [!IMPORTANT]
+> **Intended Primary Audience**
+> A technically proficient person (running macOS) who maintains, develops, and runs the ARTIS model. 
 
-- It does not run other ARTIS model scripts for raw data input (`01-clean-model-inputs.R`, `03-combine-tables.R`, or `04-create-metadata.R`).
-- This is not the place to make changes to the ARTIS model code. 
-- This is not the place to find ARTIS model version releases or DOIs. 
-- This is probably not helpful or important for people interested in the data. 
+
+> [!Tip]
+> **What This Repo Does Not Do:**
+>  - It does not run other ARTIS model scripts for raw data input (`01-clean-model-inputs.R`, `03-combine-tables.R`, or `04-create-metadata.R`).
+>  - This is not the place to make changes to the ARTIS model code.
+>  - This is not the place to find ARTIS model version releases or DOIs. 
+>  - This is probably not helpful or important for people interested in the data. 
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [`artis-model` Version Compatibility](#artis-model-version-compatibility)
 - [Prerequisites](#prerequisites)
-  - [Software Installations](#software-installations)
-  - [Local Repositories](#local-repositories)
-  - [AWS Credentials & IAM Access](#aws-credentials--iam-access)
 - [Run ARTIS on AWS Instructions](#run-artis-on-aws-instructions)
-  - [Full Setup Instructions](#full-setup-instructions)
-  - [Run ARTIS on AWS Instructions from `get_snet()` ("Restart")](#run-artis-on-aws-instructions-from-get_snet-restart)
+  - [1. Full Setup Instructions](#full-setup-instructions)
+  - [2. Run ARTIS on AWS Instructions from `get_snet()` ("Restart")](#run-artis-on-aws-instructions-from-get_snet-restart)
 - [Installations](#installations)
-  - [Homebrew Installation](#homebrew-installation)
-  - [Docker Desktop Installation](#docker-desktop-installation)
-  - [AWS CLI Installation](#aws-cli-installation)
-  - [Terraform CLI Installation](#terraform-cli-installation)
-  - [Python Installation](#python-installation)
 - [S3 Bucket & Output Structure](#s3-bucket--output-structure)
+- [Docker Image `artis-image` Details](#docker-image-artis-image-details)
 - [Checks & Troubleshooting](#checks--troubleshooting)
-  - [Status of jobs submitted to AWS Batch](#status-of-jobs-submitted-to-aws-batch)
-  - [Troubleshoot failed jobs](#troubleshoot-failed-jobs)
-  - [Check CloudWatch logs for a specific job](#check-cloudwatch-logs-for-a-specific-job)
-  - [Check for all expected outputs in S3 bucket](#check-for-all-expected-outputs-in-s3-bucket)
 
 ## Overview
 
@@ -65,7 +57,9 @@ This repository [`artis-hpc`](https://github.com/Seafood-Globalization-Lab/artis
 
 **Required ARTIS Model Version:** [`Seafood-Globalization-Lab/artis-model@v1.1.0`](https://github.com/Seafood-Globalization-Lab/artis-model/releases/tag/v1.1.0) 
 
-Ensure your local `artis-model` repo is up to date with the remote repo and on the appropriate branch that you want to run the model from. Following the ARTIS software development workflow, this is likely `artis-model/development`.
+> [!IMPORTANT] 
+> - Ensure your local `artis-model` repo is up to date with the remote repo and on the appropriate branch that you want to run the model from. Following the ARTIS software development workflow, this is likely `artis-model@develop`. 
+> - Tag exact commit SHA of `artis-model` repo and branch with a name like `run/ARTIS_2.0_FAO_2025_09_11` for reproducibility and traceability. This can be after running the model on AWS incase small changes are needed to the AWS embeded code in the model.
 
 ## Prerequisites
 
@@ -97,7 +91,7 @@ Jump to [Intall instructions](#installations)
 
 ## Run ARTIS on AWS Instructions
 
-### Full Setup Instructions
+### 1. Full Setup Instructions
 
 #### Reset your local `artis-hpc`
 
@@ -233,7 +227,8 @@ Jump to [Intall instructions](#installations)
 
 - Open your local GUI Docker Desktop application
 
-   Keep this running in the background while setting up ARTIS to run on AWS. Docker Desktop is the Docker engine used to build the Docker image locally and Authenticates with AWS ECR where the image is pushed to. 
+> [!IMPORTANT]
+> Keep this running in the background while setting up ARTIS to run on AWS. Docker Desktop is the Docker engine used to build the Docker image locally and Authenticates with AWS ECR where the image is pushed to. 
 
 #### Prepare and Launch ARTIS HPC on AWS
 
@@ -324,15 +319,38 @@ Jump to [Intall instructions](#installations)
 
 #### Teardown all AWS resources  
 
-   - Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. *Requires "yes" input in terminal prompt*.
+- Remove all AWS resources using terraform files written out at the root level of `artis-hpc/`. *Requires "yes" input in terminal prompt*.
 
    ```zsh
    terraform destroy
    ```
-   
-   Manually remove these files when cleaning up directory. DO NOT COMMIT TO GIT - they include your personal AWS credentials. KEEP `./terraform_scipts/*` - these are templates without credentials.
 
-### Run ARTIS on AWS Instructions from `get_snet()` ("Restart")
+> [!Warning]
+> running `terraform destroy` is not a 100% sure way to clean up AWS resources. Always check your AWS console to ensure all resources have been deleted. Commonly missed resources are EC2 Elastic IPs, Nat Gateways, and possibly ARTIS-VPC (do not delete default VPC). Check with Jessica to look at the billing dashboard to identify lingering resources that are acruing costs. Remove these manually if needed. 
+   
+#### Cleanup local `artis-hpc` repo
+
+- Manually delete root level terraform files: 
+  - `./terraform.tfstate`
+  - `./terraform.tfstate.backup`
+  - `./variables.tf`
+  - `./main.tf`
+  - `.terraform/` directory
+  - `./terraform.lock.hcl`
+  
+> [!CAUTION]
+> DO NOT COMMIT TEMPORARY `terraform` FILES TO GIT. These terraform files include your personal AWS credentials. 
+> KEEP `./terraform_scipts/*` - these are template scripts without credentials.
+
+- Delete `./docker_image_create_and_upload.py`
+- Delete `./Dockerfile`
+- Delete `./s3_download.py`
+- Delete `./s3_upload.py`
+- Delete `./docker_image_files/` directory
+- Delete `./data_s3_upload/ARTIS_model_code` directory
+- Delete `./data_s3_upload/model_inputs` directory
+
+### 2. Run ARTIS on AWS Instructions from `get_snet()` ("Restart")
 
 *Use case:* An error occured after `get_country_solutions` portion of  `02-artis-pipeline.R`. Could be something to do with the generation of the trade data (snet) or consumption, or the embedded AWS code in the model. No need to run compute intensive country solutions again. 
 
@@ -342,7 +360,10 @@ Jump to [Intall instructions](#installations)
 - Your local `artis-hpc` repo is up-to-date and `setup_artis_hpc.sh` has been run at least once to stage `artis-hpc` code (FIXIT: add links).
 - AWS credentials are set as environmental variables (See above to set FIXIT: add link)
 - Ensure updated ARTIS model code is updated in the appropriate location. If changes were made in [`artis-model`](https://github.com/Seafood-Globalization-Lab/artis-model) then you need to run `setup_artis_hpc.sh` again to copy over updated versions of the code to the `artis-hpc/data_s3_upload/` directory for upload to s3. You could also manually upload the changed file to s3 via the browser GUI, or manually copy the changed file over to `artis-hpc/data_s3_upload/` to programmically upload. 
-- *NOTE* As of 2025-08-07 `s3_upload.py` ONLY uploads 2 folders in `artis-hpc/data_s3_upload/`:  `artis-hpc/data_s3_upload/ARTIS_model_code` and `artis-hpc/data_s3_upload/model_inputs/`.
+
+> [!NOTE]
+> As of 2025-08-07 `s3_upload.py` ONLY uploads 2 folders in `artis-hpc/data_s3_upload/`:  `artis-hpc/data_s3_upload/ARTIS_model_code` and `artis-hpc/data_s3_upload/model_inputs/`.
+
 
 #### Copy and Move All Country Solutions Files
 
@@ -456,8 +477,31 @@ Jump to [Intall instructions](#installations)
    ```zsh
    terraform destroy
    ```
+
+> [!Warning]
+> running `terraform destroy` is not a 100% sure way to clean up AWS resources. Always check your AWS console to ensure all resources have been deleted. Commonly missed resources are EC2 Elastic IPs, Nat Gateways, and possibly ARTIS-VPC (do not delete default VPC). Check with Jessica to look at the billing dashboard to identify lingering resources that are acruing costs. Remove these manually if needed. 
    
-   Manually remove these files when cleaning up directory. DO NOT COMMIT TO GIT - they include your personal AWS credentials. KEEP `./terraform_scipts/*` - these are templates without credentials.
+#### Cleanup local `artis-hpc` repo
+
+- Manually delete root level terraform files: 
+  - `./terraform.tfstate`
+  - `./terraform.tfstate.backup`
+  - `./variables.tf`
+  - `./main.tf`
+  - `.terraform/` directory
+  - `./terraform.lock.hcl`
+  
+> [!CAUTION]
+> DO NOT COMMIT TEMPORARY `terraform` FILES TO GIT. These terraform files include your personal AWS credentials. 
+> KEEP `./terraform_scipts/*` - these are template scripts without credentials.
+
+- Delete `./docker_image_create_and_upload.py`
+- Delete `./Dockerfile`
+- Delete `./s3_download.py`
+- Delete `./s3_upload.py`
+- Delete `./docker_image_files/` directory
+- Delete `./data_s3_upload/ARTIS_model_code` directory
+- Delete `./data_s3_upload/model_inputs` directory
 
 ## Installations
 
@@ -598,6 +642,10 @@ s3://artis-s3-bucket/outputs/
 │   │   └── … (other global CSVs)
 │   └── … (other HS versions)
 ```
+
+## Docker Image Details
+
+See [`artis-hpc/docs/docker-image-details.md`](docs/docker-image-details.md) for more information on the Docker image contents.
 
 ## Checks & Troubleshooting 
 
