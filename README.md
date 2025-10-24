@@ -118,11 +118,21 @@ Jump to [Intall instructions](#installations)
 
 #### Set your local `artis-model` configurations
 
-- Set `02-artis-pipeline.R` `run_env` to run `00-aws-hpc-setup.R`. Do this before running `setup_artis_hpc.sh` script below to ensure the correct version of `02-artis-pipeline.R` is copied into `artis-hpc` repo.
+- Set `02-artis-pipeline.R` `run_env`. Do this before running `setup_artis_hpc.sh` script below to ensure the correct version of `02-artis-pipeline.R` is copied into `artis-hpc` repo.
    ```r
    run_env <- "aws"
    ```
 
+- Set `00-aws-hpc-setup.R` model paramenters
+   ```r
+   # set specific years to run in number vector, leave empty to run all years
+   test_years <- c(1996:2019)
+   # set model estimate - "min", "midpoint", "max" - default is "midpoint"
+   estimate_data_type <- "midpoint" 
+   # Set production data type variable "SAU" or "FAO"
+   prod_data_type <- "SAU" 
+   ```
+   
 #### Set your AWS credentials
 
 - Set as environment variables in **shell/terminal** (replace brackets with your values, do not include brackets):  
