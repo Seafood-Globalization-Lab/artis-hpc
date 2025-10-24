@@ -116,6 +116,13 @@ Jump to [Intall instructions](#installations)
    git clean -fdx
    ```
 
+#### Set your local `artis-model` configurations
+
+- Set `02-artis-pipeline.R` `run_env` to run `00-aws-hpc-setup.R`. Do this before running `setup_artis_hpc.sh` script below to ensure the correct version of `02-artis-pipeline.R` is copied into `artis-hpc` repo.
+   ```r
+   run_env <- "aws"
+   ```
+
 #### Set your AWS credentials
 
 - Set as environment variables in **shell/terminal** (replace brackets with your values, do not include brackets):  
