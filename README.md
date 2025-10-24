@@ -21,7 +21,7 @@ This repository automates and orchestrates running the ARTIS model pipeline [`ar
 
 > [!Tip]
 > **What This Repo Does Not Do:**
->  - It does not run other ARTIS model scripts for raw data input (`01-clean-model-inputs.R`, `03-combine-tables.R`, or `04-create-metadata.R`).
+>  - It does not run other ARTIS model scripts for raw data input (`01-clean-model-inputs.R` or `03-combine-tables.R`).
 >  - This is not the place to make changes to the ARTIS model code.
 >  - This is not the place to find ARTIS model version releases or DOIs. 
 >  - This is probably not helpful or important for people interested in the data. 
@@ -152,6 +152,10 @@ Jump to [Intall instructions](#installations)
    aws configure get aws_access_key_id
    ```
 
+#### Copy model input data
+
+Copy this version's model inputs (e.g., `model_inputs_2.1.1_FAO`) into the `artis-model/model_inputs/` folder, which should be emptied prior to pasting the data files.
+
 #### Configure `artis-hpc` repo
 
 - Setup repo with several helper scripts encapsulated in `./setup_artis_hpc.sh`(differs for restarting ARTIS) - replace `< >` with your local repo path
@@ -162,7 +166,7 @@ Jump to [Intall instructions](#installations)
 
    `./setup_artis_hpc.sh` does the following:
 
-   - Set `HS_VERSIONS` environmental variable
+   - Set `HS_VERSIONS` environmental variable.
 
       ```zsh
       export HS_VERSIONS="96,02,07,12,17"
@@ -222,6 +226,14 @@ Jump to [Intall instructions](#installations)
 
 
    - Syncs `data_s3_upload/ARTIS_model_code/` and `data_s3_upload/model_inputs/` to your S3 bucket (e.g., `s3://artis-s3-bucket/`).
+
+#### Activate the Python vitrual environment
+
+In the terminal run:
+      ```zsh
+      source venv/bin/activate
+      ```
+The terminal line should now start with `(venv)`.
 
 #### Launch Docker Desktop
 
