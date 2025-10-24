@@ -22,6 +22,7 @@ ARTIS_HPC_DIR="$2"
 
 
 # Set HS_VERSIONS as environmental variable (comma-separated, no spaces, i.e. "02,07,12,17,96" or "96")
+# Smart to keep all version present for setup purposes - will create all versions of 02-artis-pipeline.R scripts
 export HS_VERSIONS="02,07,12,17,96"
 
 # ---------------------------

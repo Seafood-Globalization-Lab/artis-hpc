@@ -41,6 +41,10 @@ docker_image_files/
 # rendered README
 README.html
 
+# rendered docs/ files
+docs/*.html
+docs/*_files/*
+
 # Positron preview files
 README_files/*
 
