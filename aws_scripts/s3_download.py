@@ -22,7 +22,7 @@ def create_s3_client(region=None):
 region = "us-east-1"
 
 # Define bucket name
-artis_bucket_name = "artis-s3-bucket"
+artis_bucket_name = "s3_bucket_name"
 
 # Create an S3 client to interact with AWS S3
 s3_client = create_s3_client(region=region)
@@ -34,7 +34,7 @@ start_time = time.time()
 paginator = s3_client.get_paginator('list_objects_v2')
 # Create a PageIterator from the Paginator
 paginator_config = {
-    "Bucket": artis_bucket_name,
+    "Bucket": s3_bucket_name,
     "Prefix": "outputs/" # only list objects within the outputs directory
 }
 page_iterator = paginator.paginate(**paginator_config)
@@ -53,7 +53,7 @@ for page in page_iterator:
             if not os.path.exists(dir_name):
                 os.makedirs(dir_name)
             print(f"Downloading file {item['Key']}")
-            s3_client.download_file(artis_bucket_name, item['Key'], item['Key'])
+            s3_client.download_file(s3_bucket_name, item['Key'], item['Key'])
 
 # Rename outputs directory with today's date
 today = date.today()
