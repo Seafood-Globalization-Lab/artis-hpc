@@ -1,0 +1,13 @@
+tidyverse
+devtools
+data.table
+magrittr
+Matrix
+reticulate
+slam
+doParallel
+countrycode
+aws.s3
+qs2
+glue
+duckdb
