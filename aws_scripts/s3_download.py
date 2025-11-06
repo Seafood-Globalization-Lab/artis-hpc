@@ -22,7 +22,7 @@ def create_s3_client(region=None):
 region = "us-east-1"
 
 # Define bucket name
-artis_bucket_name = "artis-s3-bucket"
+artis_bucket_name = "s3_bucket_name"
 
 # Create an S3 client to interact with AWS S3
 s3_client = create_s3_client(region=region)

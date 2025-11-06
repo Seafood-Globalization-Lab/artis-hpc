@@ -178,7 +178,7 @@ Copy this version's model inputs (e.g., `model_inputs_2.1.1_FAO`) into the `arti
 - Setup repo with several helper scripts encapsulated in `./setup_artis_hpc.sh`(differs for restarting ARTIS) - replace `< >` with your local repo path
    
    ```zsh
-   bash setup_artis_hpc.sh </path/to/local/artis-model> </path/to/local/artis-hpc>
+   bash setup_artis_hpc.sh </Users/theamarks/Documents/git-projects/artis-model> </Users/theamarks/Documents/git-projects/artis-hpc>
    ```
 
    `./setup_artis_hpc.sh` does the following:
