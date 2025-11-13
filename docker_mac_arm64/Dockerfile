@@ -20,18 +20,22 @@ RUN apt-get update && \
         gfortran && \
     rm -rf /var/lib/apt/lists/*
 
-# Install R using RIG
-RUN curl -fsSL https://repo.rig.sh/install.sh | sh
-RUN rig add r-release
+# Install R (latest version)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends r-base && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create application directory
 RUN mkdir /usr/src/ARTIS
 WORKDIR /usr/src/ARTIS
 COPY docker_image_files_original/ ./
 
+# Install pak (modern R package manager)
+RUN R -e "install.packages('pak', repos='https://cloud.r-project.org')"
+
 # Install R packages from r-packages.txt
 COPY r-packages.txt .
-RUN rig pkg install --file r-packages.txt
+RUN R -e "pak::pkg_install(readLines('r-packages.txt'))"
 
 # Set up Python virtual environment and install packages
 RUN python3 -m venv venv && \
