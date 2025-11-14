@@ -30,12 +30,20 @@ RUN mkdir /usr/src/ARTIS
 WORKDIR /usr/src/ARTIS
 COPY docker_image_files_original/ ./
 
-# Install pak (modern R package manager)
-RUN R -e "install.packages('pak', repos='https://cloud.r-project.org')"
+# Copy R package list
+COPY docker_image_files_original/r-packages.txt .
 
-# Install R packages from r-packages.txt
-COPY r-packages.txt .
-RUN R -e "pak::pkg_install(readLines('r-packages.txt'))"
+# Install R and pak packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libxml2-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Use CRAN mirror and install pak
+RUN Rscript -e "install.packages('pak', repos='https://cloud.r-project.org')" && \
+    Rscript -e "pak::pkg_install(readLines('r-packages.txt'), ask = FALSE)"
 
 # Set up Python virtual environment and install packages
 RUN python3 -m venv venv && \
