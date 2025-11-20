@@ -41,9 +41,19 @@ RUN apt-get update && \
         libxml2-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Use CRAN mirror and install pak
-RUN Rscript -e "install.packages('pak', repos='https://cloud.r-project.org')" && \
-    Rscript -e "pak::pkg_install(readLines('r-packages.txt'), ask = FALSE)"
+# Install pak
+RUN Rscript -e "install.packages('pak', repos='https://cloud.r-project.org')"
+
+# Configure repositories with PPM snapshot first, CRAN as backup
+RUN R -e "pak::repo_add(PPM = 'PPM@2025-10-15')" && \
+    R -e "pak::repo_add(CRAN = 'https://cloud.r-project.org')"
+
+# Install R packages from list
+RUN Rscript -e "pak::pkg_install(readLines('r-packages.txt'), ask = FALSE)"
+
+# # Use CRAN mirror and install pak
+# RUN Rscript -e "install.packages('pak', repos='https://cloud.r-project.org')" && \
+#     Rscript -e "pak::pkg_install(readLines('r-packages.txt'), ask = FALSE)"
 
 # Set up Python virtual environment and install packages
 RUN python3 -m venv venv && \
