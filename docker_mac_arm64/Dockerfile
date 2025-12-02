@@ -51,6 +51,9 @@ RUN R -e "pak::repo_add(PPM = 'PPM@2025-10-15')" && \
 # Install R packages from list
 RUN Rscript -e "pak::pkg_install(readLines('r-packages.txt'), ask = FALSE)"
 
+# Install artis-model from GitHub
+RUN Rscript -e "pak::pkg_install('Seafood-Globalization-Lab/artis-model@deploy-to-AWS', dependencies = TRUE)"
+
 # # Use CRAN mirror and install pak
 # RUN Rscript -e "install.packages('pak', repos='https://cloud.r-project.org')" && \
 #     Rscript -e "pak::pkg_install(readLines('r-packages.txt'), ask = FALSE)"
